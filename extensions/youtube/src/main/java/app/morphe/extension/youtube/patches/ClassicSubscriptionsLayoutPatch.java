@@ -20,6 +20,7 @@ import app.morphe.extension.youtube.innertube.BrowseResponseOuterClass.BrowseTab
 import app.morphe.extension.youtube.innertube.BrowseResponseOuterClass.TabRenderer;
 import app.morphe.extension.youtube.innertube.GuideResponseOuterClass.PivotBarItemRenderer;
 import app.morphe.extension.youtube.innertube.IconOuterClass.YTIconType;
+import app.morphe.extension.youtube.settings.Settings;
 
 /**
  * Disables the A/B layout that moves Subscriptions from the navigation bar to a tab of the Home feed.
@@ -94,8 +95,14 @@ public final class ClassicSubscriptionsLayoutPatch {
     @Nullable
     private static PivotBarItemRenderer getPivotBarItemRenderer(Object pivotBarItem) {
         try {
-            MessageLite messageLite = ((PivotBarItemInterface) pivotBarItem).patch_getPivotBarItemRenderer();
-            return PivotBarItemRenderer.parseFrom(messageLite.toByteArray());
+            if (!(pivotBarItem instanceof PivotBarItemInterface renderInterface)) {
+                if (Settings.DEBUG.get()) {
+                    Logger.printException(() -> "Debug: Unknown pivot bar class: " + pivotBarItem.getClass());
+                }
+            } else {
+                MessageLite messageLite = renderInterface.patch_getPivotBarItemRenderer();
+                return PivotBarItemRenderer.parseFrom(messageLite.toByteArray());
+            }
         } catch (Exception ex) {
             Logger.printException(() -> "Failed to parse PivotBarItemRenderer", ex);
         }
