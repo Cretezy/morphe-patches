@@ -50,7 +50,6 @@ import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findElementByAttributeValueOrThrow
 import app.morphe.util.getFreeRegisterProvider
 import app.morphe.util.getReference
-import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.insertLiteralOverride
 import app.morphe.util.removeFromParent
 import app.morphe.util.setExtensionIsPatchIncluded
@@ -369,17 +368,18 @@ val navigationBarPatch = bytecodePatch(
                     // before the guide response is loaded, so the browse endpoint extension is set.
                     // Inserted at the same index as above, so the button is added before the Search
                     // and Settings buttons.
-                    val pivotBarItemFactoryMethod = PivotBarRendererFingerprint.method
-                    val pivotBarItemProtoFactoryMethod = PivotBarItemProtoFactoryFingerprint.method
-                    val iconType = pivotBarItemProtoFactoryMethod.parameterTypes[2].toString()
+                    val iconType = PivotBarItemProtoFactoryFingerprint.method.parameterTypes[2].toString()
                     // Enum constant names are obfuscated, so the icon type is found by its value.
-                    val iconTypeLookupMethod = classDefBy(iconType).methods.first { method ->
-                        AccessFlags.STATIC.isSet(method.accessFlags) &&
-                                method.returnType == iconType &&
-                                method.parameterTypes.size == 1 &&
-                                method.parameterTypes.first().toString() == "I"
-                    }
-                    val pivotBarItemOptionalType = pivotBarItemFactoryMethod.returnType
+                    val iconTypeLookupMethod = Fingerprint(
+                        definingClass = iconType,
+                        returnType = iconType,
+                        parameters = listOf("I"),
+                        custom = { method, _ ->
+                            AccessFlags.STATIC.isSet(method.accessFlags)
+                        }
+                    ).originalMethod
+
+                    val pivotBarItemOptionalType = PivotBarRendererFingerprint.method.returnType
                     // Non range invoke instructions, so 4-bit registers are required.
                     val freeRegisters = getFreeRegisterProvider(insertIndex, 4)
                     val browseIdRegister = freeRegisters.getFreeRegister4Bit()
@@ -403,9 +403,9 @@ val navigationBarPatch = bytecodePatch(
                             invoke-static { v$iconRegister }, $iconTypeLookupMethod
                             move-result-object v$iconRegister
                             const/4 v$iconOnlyRegister, 0x0
-                            invoke-static { v$browseIdRegister, v$labelRegister, v$iconRegister, v$iconOnlyRegister }, $pivotBarItemProtoFactoryMethod
+                            invoke-static { v$browseIdRegister, v$labelRegister, v$iconRegister, v$iconOnlyRegister }, ${PivotBarItemProtoFactoryFingerprint.method}
                             move-result-object v$browseIdRegister
-                            invoke-static { v$browseIdRegister }, $pivotBarItemFactoryMethod
+                            invoke-static { v$browseIdRegister }, ${PivotBarRendererFingerprint.method}
                             move-result-object v$browseIdRegister
                             const/4 v$labelRegister, 0x0
                             invoke-virtual { v$browseIdRegister, v$labelRegister }, $pivotBarItemOptionalType->orElse(Ljava/lang/Object;)Ljava/lang/Object;
@@ -458,19 +458,19 @@ val navigationBarPatch = bytecodePatch(
             // Show only the selected tab of the Home and Subscriptions feeds.
             // The tab protos are filtered instead of the browse response,
             // because the response would lose the proto extensions if it's parsed again.
-            BrowseResponseTabsFingerprint.method.apply {
-                val streamIndex = indexOfFirstInstructionOrThrow {
-                    getReference<MethodReference>()?.name == "stream"
-                }
-                val tabsRegister = getInstruction<FiveRegisterInstruction>(streamIndex).registerC
+            BrowseResponseTabsFingerprint.let {
+                it.method.apply {
+                    val streamIndex = it.instructionMatches[1].index
+                    val tabsRegister = getInstruction<FiveRegisterInstruction>(streamIndex).registerC
 
-                addInstructions(
-                    streamIndex,
-                    """
-                        invoke-static { v$tabsRegister }, $EXTENSION_SUBSCRIPTIONS_CLASS->filterBrowseTabs(Ljava/util/List;)Ljava/util/List;
-                        move-result-object v$tabsRegister
-                    """
-                )
+                    addInstructions(
+                        streamIndex,
+                        """
+                            invoke-static { v$tabsRegister }, $EXTENSION_SUBSCRIPTIONS_CLASS->filterBrowseTabs(Ljava/util/List;)Ljava/util/List;
+                            move-result-object v$tabsRegister
+                        """
+                    )
+                }
             }
 
             OfflineNavigationBarSubscriptionsFeatureFlagFingerprint.let {

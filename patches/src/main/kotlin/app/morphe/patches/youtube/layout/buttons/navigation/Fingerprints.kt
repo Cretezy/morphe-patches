@@ -248,6 +248,7 @@ internal object BrowseResponseTabsFingerprint : Fingerprint(
     parameters = listOf(),
     filters = listOf(
         literal(58173949L),
+        methodCall(name = "stream"),
         fieldAccess(
             opcode = Opcode.IPUT_OBJECT,
             definingClass = "this"
