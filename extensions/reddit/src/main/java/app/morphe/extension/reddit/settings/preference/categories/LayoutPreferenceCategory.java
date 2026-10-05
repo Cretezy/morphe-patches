@@ -15,6 +15,7 @@ import android.preference.PreferenceScreen;
 import app.morphe.extension.reddit.patches.DisableModernHomePatch;
 import app.morphe.extension.reddit.patches.DisableScreenshotPopupPatch;
 import app.morphe.extension.reddit.patches.CustomFontPatch;
+import app.morphe.extension.reddit.patches.FeedMediaMaxHeightPatch;
 import app.morphe.extension.reddit.patches.ForceSystemFontPatch;
 import app.morphe.extension.reddit.patches.FullWidthFeedMediaPatch;
 import app.morphe.extension.reddit.patches.HideAskButtonPatch;
@@ -50,6 +51,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 FullWidthFeedMediaPatch.isPatchIncluded() ||
                 MediaViewerFadePatch.isPatchIncluded() ||
                 KeepFeedPositionPatch.isPatchIncluded() ||
+                FeedMediaMaxHeightPatch.isPatchIncluded() ||
                 RemoveSubRedditDialogPatch.isPatchIncluded();
     }
 
@@ -138,6 +140,13 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new BooleanSettingPreference(
                     context,
                     KeepFeedPositionPatch.KEEP_FEED_POSITION
+            ));
+        }
+
+        if (FeedMediaMaxHeightPatch.isPatchIncluded()) {
+            addPreference(new IntegerSettingPreference(
+                    context,
+                    FeedMediaMaxHeightPatch.FEED_MEDIA_MAX_HEIGHT
             ));
         }
     }
