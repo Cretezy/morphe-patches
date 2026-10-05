@@ -84,6 +84,10 @@ Second \"item\" text"</string>
     <string name="morphe_hide_join_conversation_button_summary">Hides the \"See the conversation\" button at the bottom of the media viewer</string>
     <string name="morphe_media_viewer_black_background_title">Media viewer black background</string>
     <string name="morphe_media_viewer_black_background_summary">Uses a black background behind images and videos in the media viewer, instead of the theme background color</string>
+    <string name="morphe_flip_post_action_bar_title">Flip post action bar</string>
+    <string name="morphe_flip_post_action_bar_summary">Moves the vote and comment buttons of posts to the right side, and the crosspost and share buttons to the left side</string>
+    <string name="morphe_swap_post_vote_comment_buttons_title">Swap vote and comment buttons</string>
+    <string name="morphe_swap_post_vote_comment_buttons_summary">Shows the comment button of posts before the vote buttons</string>
     <string name="morphe_remember_collapsed_comments_title">Remember collapsed comments</string>
     <string name="morphe_remember_collapsed_comments_summary">Comments you collapse stay collapsed when you reopen the post</string>
     <string name="morphe_open_links_externally_title">Open links externally</string>

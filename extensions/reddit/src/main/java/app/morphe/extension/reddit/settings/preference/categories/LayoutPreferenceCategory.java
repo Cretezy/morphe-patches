@@ -16,6 +16,7 @@ import app.morphe.extension.reddit.patches.DisableModernHomePatch;
 import app.morphe.extension.reddit.patches.DisableScreenshotPopupPatch;
 import app.morphe.extension.reddit.patches.CustomFontPatch;
 import app.morphe.extension.reddit.patches.FeedMediaMaxHeightPatch;
+import app.morphe.extension.reddit.patches.FlipPostActionBarPatch;
 import app.morphe.extension.reddit.patches.ForceSystemFontPatch;
 import app.morphe.extension.reddit.patches.FullWidthFeedMediaPatch;
 import app.morphe.extension.reddit.patches.HideAskButtonPatch;
@@ -58,6 +59,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 HideMediaViewerOverlayPatch.isPatchIncluded() ||
                 HideJoinConversationButtonPatch.isPatchIncluded() ||
                 MediaViewerBlackBackgroundPatch.isPatchIncluded() ||
+                FlipPostActionBarPatch.isPatchIncluded() ||
                 RemoveSubRedditDialogPatch.isPatchIncluded();
     }
 
@@ -174,6 +176,17 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new BooleanSettingPreference(
                     context,
                     MediaViewerBlackBackgroundPatch.MEDIA_VIEWER_BLACK_BACKGROUND
+            ));
+        }
+
+        if (FlipPostActionBarPatch.isPatchIncluded()) {
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    FlipPostActionBarPatch.FLIP_POST_ACTION_BAR
+            ));
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    FlipPostActionBarPatch.SWAP_POST_VOTE_COMMENT_BUTTONS
             ));
         }
     }
