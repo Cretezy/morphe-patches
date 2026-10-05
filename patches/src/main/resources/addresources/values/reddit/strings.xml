@@ -80,6 +80,8 @@ Second \"item\" text"</string>
     <string name="morphe_feed_media_max_height_summary">Maximum height of images, videos and galleries in the feed, in percent of their width. Taller media is cropped. 133 is Reddit\'s default</string>
     <string name="morphe_hide_media_viewer_overlay_title">Hide media viewer overlay</string>
     <string name="morphe_hide_media_viewer_overlay_summary">Hides the title, buttons and video controls when opening an image or video. Tap the media to show them</string>
+    <string name="morphe_hide_join_conversation_button_title">Hide See the conversation button</string>
+    <string name="morphe_hide_join_conversation_button_summary">Hides the \"See the conversation\" button at the bottom of the media viewer</string>
     <string name="morphe_open_links_externally_title">Open links externally</string>
     <string name="morphe_open_links_externally_summary">Opens links in your browser instead of the in-app browser</string>
     <string name="morphe_app_icon_title">App icon</string>

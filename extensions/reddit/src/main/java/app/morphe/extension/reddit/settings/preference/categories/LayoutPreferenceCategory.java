@@ -20,6 +20,7 @@ import app.morphe.extension.reddit.patches.ForceSystemFontPatch;
 import app.morphe.extension.reddit.patches.FullWidthFeedMediaPatch;
 import app.morphe.extension.reddit.patches.HideAskButtonPatch;
 import app.morphe.extension.reddit.patches.HideCommunitiesShelf;
+import app.morphe.extension.reddit.patches.HideJoinConversationButtonPatch;
 import app.morphe.extension.reddit.patches.HideMediaViewerOverlayPatch;
 import app.morphe.extension.reddit.patches.HideTrendingShelvesPatch;
 import app.morphe.extension.reddit.patches.KeepFeedPositionPatch;
@@ -54,6 +55,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 KeepFeedPositionPatch.isPatchIncluded() ||
                 FeedMediaMaxHeightPatch.isPatchIncluded() ||
                 HideMediaViewerOverlayPatch.isPatchIncluded() ||
+                HideJoinConversationButtonPatch.isPatchIncluded() ||
                 RemoveSubRedditDialogPatch.isPatchIncluded();
     }
 
@@ -156,6 +158,13 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new BooleanSettingPreference(
                     context,
                     HideMediaViewerOverlayPatch.HIDE_MEDIA_VIEWER_OVERLAY
+            ));
+        }
+
+        if (HideJoinConversationButtonPatch.isPatchIncluded()) {
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    HideJoinConversationButtonPatch.HIDE_JOIN_CONVERSATION_BUTTON
             ));
         }
     }
