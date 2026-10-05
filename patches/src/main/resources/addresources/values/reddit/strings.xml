@@ -78,6 +78,8 @@ Second \"item\" text"</string>
     <string name="morphe_keep_feed_position_summary">Keeps the feed at the same position after closing a post, image or video, instead of moving the opened post to the top</string>
     <string name="morphe_feed_media_max_height_title">Feed media max height</string>
     <string name="morphe_feed_media_max_height_summary">Maximum height of images, videos and galleries in the feed, in percent of their width. Taller media is cropped. 133 is Reddit\'s default</string>
+    <string name="morphe_hide_media_viewer_overlay_title">Hide media viewer overlay</string>
+    <string name="morphe_hide_media_viewer_overlay_summary">Hides the title, buttons and video controls when opening an image or video. Tap the media to show them</string>
     <string name="morphe_open_links_externally_title">Open links externally</string>
     <string name="morphe_open_links_externally_summary">Opens links in your browser instead of the in-app browser</string>
     <string name="morphe_app_icon_title">App icon</string>
