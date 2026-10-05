@@ -11,6 +11,8 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionFilter
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.anyInstruction
+import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
@@ -115,4 +117,119 @@ internal object MediaViewerPageFingerprint : Fingerprint(
         modifierPaddingFilter, // Navigation bar padding.
         modifierPaddingFilter // Status bar padding.
     )
+)
+
+/**
+ * Test tags of the media viewer screen and pagers, each drawn with the theme background color.
+ * Video pages don't draw their own background, so the pager color shows around them.
+ */
+internal val MEDIA_VIEWER_BACKGROUND_TAGS = setOf(
+    "fbp_screen",
+    "fbp_screen_horizontal_pager",
+    "fbp_horizontal_pager"
+)
+
+internal val mediaViewerBackgroundTagFilter = anyInstruction(
+    *MEDIA_VIEWER_BACKGROUND_TAGS.map { string(it) }.toTypedArray()
+)
+
+// Modifier.background(color, shape).
+internal val mediaViewerBackgroundCallFilter = methodCall(
+    parameters = listOf("L", "J", "L"),
+    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+)
+
+internal object MediaViewerBackgroundFingerprint : Fingerprint(
+    filters = listOf(mediaViewerBackgroundTagFilter)
+)
+
+/**
+ * Bottom sheet menu host around the media viewer pager, with the theme background color.
+ * It covers the page area between the system bars.
+ */
+internal object MediaViewerBottomSheetMenuFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        newInstance($$"Lcom/reddit/fullbleedplayer/ui/composables/BottomSheetMenuKt$BottomSheetMenu$2$1;"),
+        mediaViewerBackgroundCallFilter
+    )
+)
+
+/**
+ * Top fade of a media viewer page, a gradient from the theme background color.
+ */
+internal object MediaViewerTopGradientFingerprint : Fingerprint(
+    definingClass = "Lcom/reddit/fullbleedplayer/ui/composables/a;",
+    returnType = "V",
+    filters = listOf(
+        literal(80f),
+        methodCall(
+            definingClass = "Ljava/util/Arrays;",
+            name = "asList"
+        )
+    )
+)
+
+/**
+ * Video player shared by the feed and the media viewer.
+ * Its background is black, or the theme background color with some experiments.
+ */
+internal object VideoPlayerBackgroundFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        fieldAccess(
+            definingClass = "Lcom/reddit/features/VideoThumbnailFadeInVariant;",
+            name = "CONTROL"
+        ),
+        methodCall(
+            returnType = "Ljava/lang/Object;",
+            parameters = listOf("L"),
+            opcode = Opcode.INVOKE_VIRTUAL
+        ),
+        mediaViewerBackgroundCallFilter
+    )
+)
+
+/**
+ * Any read of LocalContext from a composable.
+ */
+internal object LocalContextFingerprint : Fingerprint(
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            definingClass = "Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;"
+        ),
+        methodCall(
+            returnType = "Ljava/lang/Object;",
+            parameters = listOf("L"),
+            location = MatchAfterImmediately()
+        ),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+        checkCast("Landroid/content/Context;", location = MatchAfterImmediately())
+    )
+)
+
+/**
+ * The fade brush is built from an array of (position, color) pairs. The remaining
+ * parameters vary between versions, so only the first parameter is constrained.
+ */
+private val staticMethodCall = methodCall(
+    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+)
+
+internal object MediaViewerFadeGradientFingerprint : Fingerprint(
+    filters = listOf(
+        InstructionFilter { method, instruction ->
+            staticMethodCall.matches(method, instruction) &&
+                    instruction.getReference<MethodReference>()!!.parameterTypes
+                        .firstOrNull()?.toString() == "[Lkotlin/Pair;"
+        }
+    )
+)
+
+// Color.copy(alpha) calls that construct the fade's color stops.
+internal val mediaViewerFadeAlphaFilter = methodCall(
+    parameters = listOf("J", "F"),
+    returnType = "J",
+    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 )
