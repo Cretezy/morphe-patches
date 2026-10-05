@@ -20,6 +20,7 @@ import app.morphe.extension.reddit.patches.FullWidthFeedMediaPatch;
 import app.morphe.extension.reddit.patches.HideAskButtonPatch;
 import app.morphe.extension.reddit.patches.HideCommunitiesShelf;
 import app.morphe.extension.reddit.patches.HideTrendingShelvesPatch;
+import app.morphe.extension.reddit.patches.KeepFeedPositionPatch;
 import app.morphe.extension.reddit.patches.MediaViewerFadePatch;
 import app.morphe.extension.reddit.patches.RemoveSubRedditDialogPatch;
 import app.morphe.extension.reddit.patches.ShowViewCountPatch;
@@ -48,6 +49,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 HideTrendingShelvesPatch.isPatchIncluded() ||
                 FullWidthFeedMediaPatch.isPatchIncluded() ||
                 MediaViewerFadePatch.isPatchIncluded() ||
+                KeepFeedPositionPatch.isPatchIncluded() ||
                 RemoveSubRedditDialogPatch.isPatchIncluded();
     }
 
@@ -129,6 +131,13 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new IntegerSettingPreference(
                     context,
                     MediaViewerFadePatch.MEDIA_VIEWER_FADE
+            ));
+        }
+
+        if (KeepFeedPositionPatch.isPatchIncluded()) {
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    KeepFeedPositionPatch.KEEP_FEED_POSITION
             ));
         }
     }
