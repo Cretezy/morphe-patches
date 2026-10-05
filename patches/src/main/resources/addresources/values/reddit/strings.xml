@@ -70,6 +70,8 @@ Second \"item\" text"</string>
     <string name="morphe_sanitize_sharing_links_summary">Removes tracking query parameters from shared links</string>
     <string name="morphe_open_links_directly_title">Open links directly</string>
     <string name="morphe_open_links_directly_summary">Bypasses redirect URLs when opening external links</string>
+    <string name="morphe_full_width_feed_media_title">Full width feed media</string>
+    <string name="morphe_full_width_feed_media_summary">Shows images and videos edge to edge in the feed and post details, without side padding and rounded corners</string>
     <string name="morphe_open_links_externally_title">Open links externally</string>
     <string name="morphe_open_links_externally_summary">Opens links in your browser instead of the in-app browser</string>
     <string name="morphe_app_icon_title">App icon</string>

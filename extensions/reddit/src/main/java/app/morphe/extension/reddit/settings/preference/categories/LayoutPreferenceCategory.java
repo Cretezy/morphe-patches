@@ -16,6 +16,7 @@ import app.morphe.extension.reddit.patches.DisableModernHomePatch;
 import app.morphe.extension.reddit.patches.DisableScreenshotPopupPatch;
 import app.morphe.extension.reddit.patches.CustomFontPatch;
 import app.morphe.extension.reddit.patches.ForceSystemFontPatch;
+import app.morphe.extension.reddit.patches.FullWidthFeedMediaPatch;
 import app.morphe.extension.reddit.patches.HideAskButtonPatch;
 import app.morphe.extension.reddit.patches.HideCommunitiesShelf;
 import app.morphe.extension.reddit.patches.HideTrendingShelvesPatch;
@@ -43,6 +44,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 HideAskButtonPatch.isPatchIncluded() ||
                 HideCommunitiesShelf.isPatchIncluded() ||
                 HideTrendingShelvesPatch.isPatchIncluded() ||
+                FullWidthFeedMediaPatch.isPatchIncluded() ||
                 RemoveSubRedditDialogPatch.isPatchIncluded();
     }
 
@@ -110,6 +112,13 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new BooleanSettingPreference(
                     context,
                     Settings.SHOW_VIEW_COUNT
+            ));
+        }
+
+        if (FullWidthFeedMediaPatch.isPatchIncluded()) {
+            addPreference(new BooleanSettingPreference(
+                    context,
+                    FullWidthFeedMediaPatch.FULL_WIDTH_FEED_MEDIA
             ));
         }
     }
