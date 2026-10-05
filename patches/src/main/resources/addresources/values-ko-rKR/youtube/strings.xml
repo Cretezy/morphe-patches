@@ -1159,7 +1159,7 @@ API 키는 절대로 다른 사람과 공유해서는 안 됩니다. API 키에 
   <!-- "DeArrow" must be kept untranslated. -->
   <string name="morphe_dearrow_titles_title">DeArrow 제목</string>
   <string name="morphe_dearrow_titles_summary">동영상 제목을 DeArrow에 제출된 크라우드소싱 제목으로 변경합니다</string>
-  <string name="morphe_dearrow_titles_icon_title">DeArrow 아이콘 표시</string>
+  <string name="morphe_dearrow_titles_icon_title">DeArrow 아이콘 표시하기</string>
   <string name="morphe_dearrow_titles_icon_summary">크라우드소싱된 동영상 제목에 DeArrow 아이콘을 표시합니다</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
   <string name="morphe_dearrow_thumbnail_home_title">홈 탭</string>

@@ -1158,7 +1158,7 @@ Limitación: si la opción 'Restaurar antigua barra de acciones de vídeo' está
   <string name="morphe_dearrow_titles_title">Títulos de DeArrow</string>
   <string name="morphe_dearrow_titles_summary">Reemplaza los títulos de los vídeos por los títulos de la comunidad enviados a DeArrow</string>
   <string name="morphe_dearrow_titles_icon_title">Mostrar icono de DeArrow</string>
-  <string name="morphe_dearrow_titles_icon_summary">Muestra el icono de DeArrow en títulos de video colaborativos</string>
+  <string name="morphe_dearrow_titles_icon_summary">Muestra el icono de DeArrow en los títulos de vídeo de la comunidad</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
   <string name="morphe_dearrow_thumbnail_home_title">Para la pestaña Inicio</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
