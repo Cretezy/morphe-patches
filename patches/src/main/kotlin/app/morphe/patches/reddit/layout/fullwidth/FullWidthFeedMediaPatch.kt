@@ -9,12 +9,14 @@ package app.morphe.patches.reddit.layout.fullwidth
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.findFreeRegister
+import app.morphe.util.findInstructionIndicesReversed
+import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -43,12 +45,10 @@ val fullWidthFeedMediaPatch = bytecodePatch(
             FeedPostStyleToStringFingerprint.instructionMatches.last().index
         ).reference as FieldReference
 
+        val insetFieldRead = fieldAccess(opcode = Opcode.IGET_BOOLEAN, name = insetField.name)
         val getterName = styleClass.methods.firstOrNull { method ->
             method.returnType == "Z" && method.parameterTypes.isEmpty() &&
-                    method.implementation?.instructions?.firstOrNull()?.let { instruction ->
-                        instruction.opcode == Opcode.IGET_BOOLEAN &&
-                                ((instruction as ReferenceInstruction).reference as FieldReference).name == insetField.name
-                    } == true
+                    method.indexOfFirstInstruction(insetFieldRead) == 0
         }?.name ?: throw PatchException("Could not find the media inset getter")
 
         // Every post style (regular, crosspost, ...) extends the same base class.
@@ -66,21 +66,16 @@ val fullWidthFeedMediaPatch = bytecodePatch(
                 method.name == getterName && method.returnType == "Z" && method.parameterTypes.isEmpty() &&
                         !AccessFlags.ABSTRACT.isSet(method.accessFlags)
             }.forEach { method ->
-                method.instructions
-                    .withIndex()
-                    .filter { (_, instruction) -> instruction.opcode == Opcode.RETURN }
-                    .map { it.index }
-                    .reversed()
-                    .forEach { index ->
-                        val register = method.getInstruction<OneRegisterInstruction>(index).registerA
-                        method.addInstructions(
-                            index,
-                            """
-                                invoke-static { v$register }, $EXTENSION_CLASS->isMediaInsetEnabled(Z)Z
-                                move-result v$register
-                            """
-                        )
-                    }
+                method.findInstructionIndicesReversed(Opcode.RETURN).forEach { index ->
+                    val register = method.getInstruction<OneRegisterInstruction>(index).registerA
+                    method.addInstructions(
+                        index,
+                        """
+                            invoke-static { v$register }, $EXTENSION_CLASS->isMediaInsetEnabled(Z)Z
+                            move-result v$register
+                        """
+                    )
+                }
                 patchedCount++
             }
         }
@@ -115,24 +110,18 @@ val fullWidthFeedMediaPatch = bytecodePatch(
             ).reference as FieldReference
 
             match.classDef.methods.filter { it.name == "<init>" }.forEach { constructor ->
-                constructor.instructions
-                    .withIndex()
-                    .filter { (_, instruction) ->
-                        instruction.opcode == Opcode.IPUT_BOOLEAN &&
-                                ((instruction as ReferenceInstruction).reference as FieldReference).name == insetField.name
-                    }
-                    .map { it.index }
-                    .reversed()
-                    .forEach { index ->
-                        val register = constructor.getInstruction<TwoRegisterInstruction>(index).registerA
-                        constructor.addInstructions(
-                            index,
-                            """
-                                invoke-static/range { v$register .. v$register }, $EXTENSION_CLASS->isMediaInsetEnabled(Z)Z
-                                move-result v$register
-                            """
-                        )
-                    }
+                constructor.findInstructionIndicesReversed(
+                    fieldAccess(opcode = Opcode.IPUT_BOOLEAN, name = insetField.name)
+                ).forEach { index ->
+                    val register = constructor.getInstruction<TwoRegisterInstruction>(index).registerA
+                    constructor.addInstructions(
+                        index,
+                        """
+                            invoke-static/range { v$register .. v$register }, $EXTENSION_CLASS->isMediaInsetEnabled(Z)Z
+                            move-result v$register
+                        """
+                    )
+                }
             }
         }
 

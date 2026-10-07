@@ -8,8 +8,10 @@
 package app.morphe.patches.reddit.layout.mediaviewer
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionFilter
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
@@ -17,9 +19,10 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * Composable of the media viewer (full bleed player) caption, user info and action bar.
@@ -75,20 +78,29 @@ internal object JoinConversationDockFingerprint : Fingerprint(
         ),
         opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
         // Whether the dock is shown.
-        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately())
-    ),
-    custom = { method, _ ->
-        method.implementation?.instructions?.any { instruction ->
-            instruction.opcode == Opcode.ADD_INT_LIT8 &&
-                    (instruction as NarrowLiteralInstruction).narrowLiteral == 60
-        } == true
-    }
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        literal(60, listOf(Opcode.ADD_INT_LIT8))
+    )
 )
 
 /**
  * Page of the media viewer pager. Pages are padded for the navigation bar at the bottom,
  * and for the status bar at the top, except images and videos.
  */
+private val modifierPaddingCall = methodCall(
+    parameters = listOf("L"),
+    returnType = "L",
+    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+)
+
+// The modifier type is obfuscated. Its parameter and return type must be identical.
+private val modifierPaddingFilter = InstructionFilter { method, instruction ->
+    modifierPaddingCall.matches(method, instruction) &&
+            instruction.getReference<MethodReference>()!!.let { reference ->
+                reference.parameterTypes.first().toString() == reference.returnType
+            }
+}
+
 internal object MediaViewerPageFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
@@ -101,7 +113,9 @@ internal object MediaViewerPageFingerprint : Fingerprint(
             definingClass = "Landroid/content/res/Configuration;",
             name = "orientation",
             location = MatchAfterWithin(6)
-        )
+        ),
+        modifierPaddingFilter, // Navigation bar padding.
+        modifierPaddingFilter // Status bar padding.
     )
 )
 
@@ -115,13 +129,19 @@ internal val MEDIA_VIEWER_BACKGROUND_TAGS = setOf(
     "fbp_horizontal_pager"
 )
 
-internal val mediaViewerBackgroundFingerprints = MEDIA_VIEWER_BACKGROUND_TAGS.map { tag ->
-    Fingerprint(
-        filters = listOf(
-            string(tag)
-        )
-    )
-}
+internal val mediaViewerBackgroundTagFilter = anyInstruction(
+    *MEDIA_VIEWER_BACKGROUND_TAGS.map { string(it) }.toTypedArray()
+)
+
+// Modifier.background(color, shape).
+internal val mediaViewerBackgroundCallFilter = methodCall(
+    parameters = listOf("L", "J", "L"),
+    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+)
+
+internal object MediaViewerBackgroundFingerprint : Fingerprint(
+    filters = listOf(mediaViewerBackgroundTagFilter)
+)
 
 /**
  * Bottom sheet menu host around the media viewer pager, with the theme background color.
@@ -130,7 +150,8 @@ internal val mediaViewerBackgroundFingerprints = MEDIA_VIEWER_BACKGROUND_TAGS.ma
 internal object MediaViewerBottomSheetMenuFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(
-        newInstance($$"Lcom/reddit/fullbleedplayer/ui/composables/BottomSheetMenuKt$BottomSheetMenu$2$1;")
+        newInstance($$"Lcom/reddit/fullbleedplayer/ui/composables/BottomSheetMenuKt$BottomSheetMenu$2$1;"),
+        mediaViewerBackgroundCallFilter
     )
 )
 
@@ -159,7 +180,13 @@ internal object VideoPlayerBackgroundFingerprint : Fingerprint(
         fieldAccess(
             definingClass = "Lcom/reddit/features/VideoThumbnailFadeInVariant;",
             name = "CONTROL"
-        )
+        ),
+        methodCall(
+            returnType = "Ljava/lang/Object;",
+            parameters = listOf("L"),
+            opcode = Opcode.INVOKE_VIRTUAL
+        ),
+        mediaViewerBackgroundCallFilter
     )
 )
 
@@ -180,4 +207,29 @@ internal object LocalContextFingerprint : Fingerprint(
         opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
         checkCast("Landroid/content/Context;", location = MatchAfterImmediately())
     )
+)
+
+/**
+ * The fade brush is built from an array of (position, color) pairs. The remaining
+ * parameters vary between versions, so only the first parameter is constrained.
+ */
+private val staticMethodCall = methodCall(
+    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+)
+
+internal object MediaViewerFadeGradientFingerprint : Fingerprint(
+    filters = listOf(
+        InstructionFilter { method, instruction ->
+            staticMethodCall.matches(method, instruction) &&
+                    instruction.getReference<MethodReference>()!!.parameterTypes
+                        .firstOrNull()?.toString() == "[Lkotlin/Pair;"
+        }
+    )
+)
+
+// Color.copy(alpha) calls that construct the fade's color stops.
+internal val mediaViewerFadeAlphaFilter = methodCall(
+    parameters = listOf("J", "F"),
+    returnType = "J",
+    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
 )

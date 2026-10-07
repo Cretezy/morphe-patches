@@ -14,9 +14,10 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
+import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
@@ -142,6 +143,7 @@ internal object GifAndVideoContentToStringFingerprint : Fingerprint(
 internal fun postContentLambdaConstructorFingerprint(propsType: String) = Fingerprint(
     name = "<init>",
     returnType = "V",
+    // Parameter declarations require an exact count; only these positions are fixed.
     custom = { method, _ ->
         val parameters = method.parameterTypes.map { it.toString() }
         parameters.firstOrNull() == propsType && parameters.getOrNull(4) == "Z"
@@ -158,6 +160,7 @@ private const val POST_VIDEO_VISIBILITY_TYPE =
 internal object PostDetailVideoFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
+    // Allow trailing parameters and the visibility type at any position, which an exact list cannot express.
     custom = { method, _ ->
         val parameters = method.parameterTypes.map { it.toString() }
         method.implementation != null &&
@@ -187,13 +190,14 @@ internal object PostDetailVideoLambdaConstructorFingerprint : Fingerprint(
         "Ljava/lang/Float;",
         "Z"
     ),
+    // The identifying call is in another method of the class, with a variable parameter list.
     custom = { _, classDef ->
         classDef.methods.any { method ->
-            method.implementation?.instructions?.any { instruction ->
-                ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.parameterTypes?.any {
+            method.indexOfFirstInstruction {
+                getReference<MethodReference>()?.parameterTypes?.any {
                     it.toString() == POST_VIDEO_VISIBILITY_TYPE
                 } == true
-            } == true
+            } >= 0
         }
     }
 )
@@ -208,6 +212,7 @@ internal object PostDetailGalleryFingerprint : Fingerprint(
     filters = listOf(
         string("post_media_gallery_content")
     ),
+    // Check the injected parameter's register position without fixing the remaining parameter list.
     custom = { method, _ ->
         val parameters = method.parameterTypes.map { it.toString() }
         parameters.size > 14 && parameters[13] == "Z" &&

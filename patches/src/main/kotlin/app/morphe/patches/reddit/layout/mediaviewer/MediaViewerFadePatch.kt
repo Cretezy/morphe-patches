@@ -10,7 +10,7 @@ package app.morphe.patches.reddit.layout.mediaviewer
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -18,6 +18,8 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.findFreeRegister
+import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -25,7 +27,6 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_CLASS =
@@ -57,35 +58,20 @@ val mediaViewerFadePatch = bytecodePatch(
 
     execute {
         MediaViewerChromeFingerprint.method.apply {
-            val instructionList = instructions.toList()
-
-            fun methodReferenceAt(index: Int): MethodReference? {
-                val instruction = instructionList[index]
-                if (instruction.opcode != Opcode.INVOKE_STATIC && instruction.opcode != Opcode.INVOKE_STATIC_RANGE) {
-                    return null
-                }
-                return (instruction as ReferenceInstruction).reference as? MethodReference
-            }
-
             // The fade is a vertical gradient built from an array of (position, color) pairs.
-            val builderIndex = instructionList.indices.firstOrNull { index ->
-                methodReferenceAt(index)?.parameterTypes?.firstOrNull()?.toString() == "[Lkotlin/Pair;"
-            } ?: throw PatchException("Could not find the fade gradient")
-            val brushType = methodReferenceAt(builderIndex)!!.returnType
+            val builderMatch = MediaViewerFadeGradientFingerprint.match(this).instructionMatches.first()
+            val builderIndex = builderMatch.index
+            val brushType = (builderMatch.getInstruction<ReferenceInstruction>().reference as MethodReference).returnType
 
             // Reddit can swap in a darker static gradient right after building the default one.
-            val alternateIndex = (builderIndex + 1..minOf(builderIndex + 6, instructionList.lastIndex))
-                .firstOrNull { index ->
-                    val instruction = instructionList[index]
-                    instruction.opcode == Opcode.SGET_OBJECT &&
-                            ((instruction as ReferenceInstruction).reference as FieldReference).type == brushType
-                }
+            val alternateIndex = indexOfFirstInstruction(
+                builderIndex + 1,
+                fieldAccess(opcode = Opcode.SGET_OBJECT, type = brushType)
+            ).takeIf { it in (builderIndex + 1)..(builderIndex + 6) }
 
             // Each color stop is made with Color.copy(alpha), a static (long, float) -> long call.
-            val alphaCallIndices = (0 until builderIndex).filter { index ->
-                val reference = methodReferenceAt(index) ?: return@filter false
-                reference.returnType == "J" && reference.parameterTypes.map { it.toString() } == listOf("J", "F")
-            }
+            val alphaCallIndices = findInstructionIndicesReversedOrThrow(mediaViewerFadeAlphaFilter)
+                .filter { it < builderIndex }
             if (alphaCallIndices.isEmpty()) throw PatchException("Could not find the fade colors")
 
             // Newer versions pick between several fade styles. Only the legacy gradient is built here.
@@ -107,7 +93,7 @@ val mediaViewerFadePatch = bytecodePatch(
                 )
             }
 
-            alphaCallIndices.reversed().forEach { index ->
+            alphaCallIndices.forEach { index ->
                 val instruction = getInstruction(index)
                 val alphaRegister = if (instruction is RegisterRangeInstruction) {
                     instruction.startRegister + 2

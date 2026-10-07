@@ -8,8 +8,10 @@
 package app.morphe.patches.reddit.layout.mediaheight
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.literal
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -18,36 +20,32 @@ import app.morphe.patches.reddit.layout.fullwidth.FeedImageSizeFingerprint
 import app.morphe.patches.reddit.layout.fullwidth.FeedVideoHeightFingerprint
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
+import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/FeedMediaMaxHeightPatch;"
 
-private val FOUR_THIRDS_BITS = (4f / 3f).toRawBits()
-
 /**
  * Replaces each `width * 4 / 3` with the configured maximum height for that width.
  */
 private fun MutableMethod.replaceIntMaxHeight(): Int {
-    val list = instructions.toList()
-    val indices = (0 until list.lastIndex).filter { index ->
-        val multiply = list[index]
-        val divide = list[index + 1]
-        (multiply.opcode == Opcode.MUL_INT_LIT8 || multiply.opcode == Opcode.MUL_INT_LIT16) &&
-                (multiply as NarrowLiteralInstruction).narrowLiteral == 4 &&
-                (divide.opcode == Opcode.DIV_INT_LIT8 || divide.opcode == Opcode.DIV_INT_LIT16) &&
-                (divide as NarrowLiteralInstruction).narrowLiteral == 3 &&
-                (divide as TwoRegisterInstruction).registerB == (multiply as TwoRegisterInstruction).registerA
+    val divideByThree = literal(3, listOf(Opcode.DIV_INT_LIT8, Opcode.DIV_INT_LIT16))
+    val indices = findInstructionIndicesReversed(
+        literal(4, listOf(Opcode.MUL_INT_LIT8, Opcode.MUL_INT_LIT16))
+    ).filter { index ->
+        val multiply = getInstruction<TwoRegisterInstruction>(index)
+        val divide = instructions.getOrNull(index + 1) ?: return@filter false
+        divideByThree.matches(this, divide) &&
+                (divide as TwoRegisterInstruction).registerB == multiply.registerA
     }
 
-    indices.reversed().forEach { index ->
-        val multiply = list[index] as TwoRegisterInstruction
-        val widthRegister = multiply.registerB
-        val resultRegister = (list[index + 1] as TwoRegisterInstruction).registerA
+    indices.forEach { index ->
+        val widthRegister = getInstruction<TwoRegisterInstruction>(index).registerB
+        val resultRegister = getInstruction<TwoRegisterInstruction>(index + 1).registerA
         replaceInstruction(
             index,
             "invoke-static/range { v$widthRegister .. v$widthRegister }, $EXTENSION_CLASS->getMaxHeight(I)I"
@@ -61,13 +59,10 @@ private fun MutableMethod.replaceIntMaxHeight(): Int {
  * Replaces each 4:3 float constant with the configured maximum height to width ratio.
  */
 private fun MutableMethod.replaceFloatMaxHeightRatio(): Int {
-    val indices = instructions.withIndex().filter { (_, instruction) ->
-        instruction.opcode == Opcode.CONST &&
-                (instruction as NarrowLiteralInstruction).narrowLiteral == FOUR_THIRDS_BITS
-    }.map { it.index }
+    val indices = findInstructionIndicesReversed(literal(4f / 3f, listOf(Opcode.CONST)))
 
-    indices.reversed().forEach { index ->
-        val register = (instructions[index] as OneRegisterInstruction).registerA
+    indices.forEach { index ->
+        val register = getInstruction<OneRegisterInstruction>(index).registerA
         replaceInstruction(index, "invoke-static { }, $EXTENSION_CLASS->getMaxHeightRatio()F")
         addInstruction(index + 1, "move-result v$register")
     }

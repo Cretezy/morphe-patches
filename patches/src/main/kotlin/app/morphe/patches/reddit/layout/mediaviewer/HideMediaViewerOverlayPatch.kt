@@ -9,19 +9,18 @@ package app.morphe.patches.reddit.layout.mediaviewer
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.findFreeRegister
+import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.removeFlags
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/HideMediaViewerOverlayPatch;"
@@ -51,28 +50,17 @@ val hideMediaViewerOverlayPatch = bytecodePatch(
 
     execute {
         // The chrome state 'isVisible' field is toggled when tapping the media.
-        val visibleField = FullBleedChromeStateToStringFingerprint.let {
-            it.method.getInstruction<ReferenceInstruction>(
-                it.instructionMatches.last().index
-            ).reference as FieldReference
-        }
-
-        // The field is final, and is written from another class.
-        FullBleedChromeStateToStringFingerprint.classDef.fields.first { field ->
-            field.name == visibleField.name && field.type == visibleField.type
-        }.apply {
-            accessFlags = accessFlags and AccessFlags.FINAL.value.inv()
-        }
+        val visibleField = FullBleedChromeStateToStringFingerprint.instructionMatches.last()
+            .getFieldAccessed().apply {
+                // The field is final, and is written from another class.
+                removeFlags(AccessFlags.FINAL)
+            }
 
         // Hide the overlay of each newly created chrome state.
         createFullBleedChromeStateFingerprint(
             FullBleedChromeStateToStringFingerprint.classDef.type
         ).method.apply {
-            instructions
-                .withIndex()
-                .filter { (_, instruction) -> instruction.opcode == Opcode.RETURN_OBJECT }
-                .map { it.index }
-                .reversed()
+            findInstructionIndicesReversedOrThrow(Opcode.RETURN_OBJECT)
                 .forEach { index ->
                     val stateRegister = getInstruction<OneRegisterInstruction>(index).registerA
                     val freeRegister = findFreeRegister(index, stateRegister)

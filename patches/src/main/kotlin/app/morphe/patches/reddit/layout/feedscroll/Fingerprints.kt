@@ -50,6 +50,7 @@ internal fun rememberOpenedPostFingerprint(postIdType: String, feedStateType: St
         )
     ),
     // The feed state itself also holds the id, but does not create it.
+    // Fingerprint access flags are exact; they cannot exclude STATIC while allowing other flags.
     custom = { method, classDef ->
         !AccessFlags.STATIC.isSet(method.accessFlags) && classDef.type != feedStateType
     }

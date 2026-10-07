@@ -9,20 +9,21 @@ package app.morphe.patches.reddit.layout.mediaviewer
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
+import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.getReference
+import app.morphe.util.indexOfFirstInstructionOrThrow
+import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 private const val EXTENSION_CLASS =
@@ -52,13 +53,6 @@ val mediaViewerBlackBackgroundPatch = bytecodePatch(
     dependsOn(settingsPatch)
 
     execute {
-        fun Instruction.isBackgroundCall(): Boolean {
-            if (opcode != Opcode.INVOKE_STATIC && opcode != Opcode.INVOKE_STATIC_RANGE) return false
-            // Modifier.background(color, shape).
-            val parameters = ((this as ReferenceInstruction).reference as MethodReference).parameterTypes
-            return parameters.size == 3 && parameters[1].toString() == "J"
-        }
-
         // Method to the indices of its background calls.
         val backgrounds = mutableMapOf<String, Pair<MutableMethod, MutableSet<Int>>>()
         fun addBackground(method: MutableMethod, backgroundIndex: Int) {
@@ -66,34 +60,34 @@ val mediaViewerBlackBackgroundPatch = bytecodePatch(
             backgrounds.getOrPut(key) { method to mutableSetOf() }.second += backgroundIndex
         }
 
-        mediaViewerBackgroundFingerprints.flatMap { it.matchAll() }.forEach { match ->
-            val list = match.method.instructions.toList()
-            list.indices.filter { index ->
-                val reference = (list[index] as? ReferenceInstruction)?.reference
-                reference is StringReference && reference.string in MEDIA_VIEWER_BACKGROUND_TAGS
-            }.forEach { tagIndex ->
-                // Right before each tag.
-                val backgroundIndex = (tagIndex downTo 0).firstOrNull { list[it].isBackgroundCall() }
-                    ?: throw PatchException("Could not find the media viewer background")
-                addBackground(match.method, backgroundIndex)
+        val missingTags = MEDIA_VIEWER_BACKGROUND_TAGS.toMutableSet()
+        MediaViewerBackgroundFingerprint.matchAll().forEach { match ->
+            match.method.apply {
+                findInstructionIndicesReversedOrThrow(mediaViewerBackgroundTagFilter).forEach { tagIndex ->
+                    missingTags -= getInstruction(tagIndex).getReference<StringReference>()!!.string
+                    // The nearest background call before each tag.
+                    addBackground(
+                        this,
+                        indexOfFirstInstructionReversedOrThrow(tagIndex, mediaViewerBackgroundCallFilter)
+                    )
+                }
             }
         }
 
+        if (missingTags.isNotEmpty()) {
+            throw PatchException("Could not find media viewer background tags: $missingTags")
+        }
+
         MediaViewerBottomSheetMenuFingerprint.match().let { match ->
-            val list = match.method.instructions.toList()
-            val backgroundIndex = (match.instructionMatches.first().index until list.size)
-                .firstOrNull { list[it].isBackgroundCall() }
-                ?: throw PatchException("Could not find the bottom sheet menu background")
-            addBackground(match.method, backgroundIndex)
+            addBackground(match.method, match.instructionMatches.last().index)
         }
 
         backgrounds.values.forEach { (method, backgroundIndices) ->
-            val list = method.instructions.toList()
             backgroundIndices.map { backgroundIndex ->
                 // The theme color is read right before.
-                (backgroundIndex downTo 0).first { list[it].opcode == Opcode.MOVE_RESULT_WIDE }
+                method.indexOfFirstInstructionReversedOrThrow(backgroundIndex, Opcode.MOVE_RESULT_WIDE)
             }.distinct().sortedDescending().forEach { colorIndex ->
-                val register = (list[colorIndex] as OneRegisterInstruction).registerA
+                val register = method.getInstruction<OneRegisterInstruction>(colorIndex).registerA
                 method.addInstructions(
                     colorIndex + 1,
                     """
@@ -106,8 +100,7 @@ val mediaViewerBlackBackgroundPatch = bytecodePatch(
 
         // Top fade of each page.
         MediaViewerTopGradientFingerprint.method.apply {
-            val colorIndex = instructions.indexOfFirst { it.opcode == Opcode.MOVE_RESULT_WIDE }
-            if (colorIndex < 0) throw PatchException("Could not find the media viewer top fade color")
+            val colorIndex = indexOfFirstInstructionOrThrow(Opcode.MOVE_RESULT_WIDE)
             val register = getInstruction<OneRegisterInstruction>(colorIndex).registerA
             addInstructions(
                 colorIndex + 1,
@@ -124,29 +117,20 @@ val mediaViewerBlackBackgroundPatch = bytecodePatch(
             .getInstruction<ReferenceInstruction>().reference
         VideoPlayerBackgroundFingerprint.let { match ->
             match.method.apply {
-                val list = instructions.toList()
-                val controlIndex = match.instructionMatches.first().index
-                val backgroundIndex = (controlIndex until list.size).firstOrNull { list[it].isBackgroundCall() }
-                    ?: throw PatchException("Could not find the video player background")
+                val backgroundIndex = match.instructionMatches.last().index
 
                 // The theme color read, with the composer.
-                val themeReadIndex = (controlIndex until backgroundIndex).first { index ->
-                    val instruction = list[index]
-                    if (instruction.opcode != Opcode.INVOKE_VIRTUAL) return@first false
-                    val reference = (instruction as ReferenceInstruction).reference as MethodReference
-                    reference.returnType == "Ljava/lang/Object;" && reference.parameterTypes.size == 1
-                }
-                val themeRead = list[themeReadIndex] as FiveRegisterInstruction
+                val themeRead = match.instructionMatches[1].getInstruction<FiveRegisterInstruction>()
                 val composerRegister = themeRead.registerC
                 val readLocal = (themeRead as ReferenceInstruction).reference
 
                 // The shape is loaded right before the background call, so its register is free.
                 val shapeIndex = backgroundIndex - 1
-                if (list[shapeIndex].opcode != Opcode.SGET_OBJECT) {
+                if (getInstruction(shapeIndex).opcode != Opcode.SGET_OBJECT) {
                     throw PatchException("Unexpected video player background shape")
                 }
-                val freeRegister = (list[shapeIndex] as OneRegisterInstruction).registerA
-                val colorRegister = (list[backgroundIndex] as FiveRegisterInstruction).registerD
+                val freeRegister = getInstruction<OneRegisterInstruction>(shapeIndex).registerA
+                val colorRegister = getInstruction<FiveRegisterInstruction>(backgroundIndex).registerD
                 if (maxOf(composerRegister, freeRegister, colorRegister + 1) > 15) {
                     throw PatchException("Video player background registers out of range")
                 }

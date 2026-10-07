@@ -10,7 +10,6 @@ package app.morphe.patches.reddit.layout.mediaviewer
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
@@ -22,8 +21,6 @@ import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21t
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/HideJoinConversationButtonPatch;"
@@ -55,7 +52,7 @@ val hideJoinConversationButtonPatch = bytecodePatch(
         // like when the comments sheet is open.
         JoinConversationDockFingerprint.let {
             it.method.apply {
-                val index = it.instructionMatches.last().index
+                val index = it.instructionMatches[2].index
                 val register = getInstruction<OneRegisterInstruction>(index).registerA
                 addInstructions(
                     index,
@@ -72,19 +69,7 @@ val hideJoinConversationButtonPatch = bytecodePatch(
         // so the media is centered between the system bars.
         MediaViewerPageFingerprint.let {
             it.method.apply {
-                val list = instructions.toList()
-                // The navigation bar padding, then the status bar padding: Modifier extensions.
-                val paddingCallIndices = (it.instructionMatches.last().index until list.size).filter { index ->
-                    val instruction = list[index]
-                    if (instruction.opcode != Opcode.INVOKE_STATIC && instruction.opcode != Opcode.INVOKE_STATIC_RANGE) {
-                        return@filter false
-                    }
-                    val reference = (instruction as ReferenceInstruction).reference as MethodReference
-                    reference.parameterTypes.size == 1 &&
-                            reference.parameterTypes.first().toString() == reference.returnType
-                }
-                val statusBarPaddingIndex = paddingCallIndices.getOrNull(1)
-                    ?: throw PatchException("Could not find the status bar padding")
+                val statusBarPaddingIndex = it.instructionMatches.last().index
 
                 // Images and videos skip the padding.
                 val skipIndex = statusBarPaddingIndex - 1
