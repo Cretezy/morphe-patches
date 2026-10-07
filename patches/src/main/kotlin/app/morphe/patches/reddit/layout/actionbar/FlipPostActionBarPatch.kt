@@ -9,21 +9,18 @@ package app.morphe.patches.reddit.layout.actionbar
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.addInstructionsAtControlFlowLabel
-import app.morphe.util.findFreeRegister
+import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.getFreeRegisterProvider
+import app.morphe.util.getReference
 import app.morphe.util.setExtensionIsPatchIncluded
-import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.Instruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_CLASS =
@@ -53,33 +50,13 @@ val flipPostActionBarPatch = bytecodePatch(
     dependsOn(settingsPatch)
 
     execute {
-        fun Instruction.methodReference() = (this as? ReferenceInstruction)?.reference as? MethodReference
-        fun Instruction.isStaticCall() = opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE
-
-        // Free registers that fit in a non-range invoke.
-        fun MutableMethod.freeLowRegisters(index: Int, count: Int, vararg exclude: Int): List<Int> {
-            val excluded = exclude.toMutableList()
-            val found = mutableListOf<Int>()
-            while (found.size < count) {
-                val register = findFreeRegister(index, *excluded.toIntArray())
-                excluded += register
-                if (register <= 15) found += register
-            }
-            return found
-        }
-
-        val actionBarType = PostActionBarTagsFingerprint.originalClassDef.type
-        postActionBarRowFingerprint(actionBarType).method.apply {
-            val list = instructions.toList()
-
+        PostActionBarRowFingerprint.method.apply {
             // Calls to the action bar class: the appearance lookup, the vote buttons, then the comment button.
-            val ownCalls = list.indices.filter { index ->
-                list[index].isStaticCall() && list[index].methodReference()?.definingClass == definingClass
-            }
+            val ownCalls = findInstructionIndicesReversedOrThrow(POST_ACTION_BAR_METHOD_CALL).asReversed()
             if (ownCalls.size < 3) throw PatchException("Could not find the action bar buttons")
             val (appearanceIndex, voteIndex, commentIndex) = ownCalls
-            val appearanceReference = list[appearanceIndex].methodReference()!!
-            val voteReference = list[voteIndex].methodReference()!!
+            val appearanceReference = getInstruction(appearanceIndex).getReference<MethodReference>()!!
+            val voteReference = getInstruction(voteIndex).getReference<MethodReference>()!!
             if (voteReference.parameterTypes.size != 5 ||
                 voteReference.parameterTypes[1].toString() != appearanceReference.returnType
             ) {
@@ -87,12 +64,7 @@ val flipPostActionBarPatch = bytecodePatch(
             }
 
             // Row measure policies, with the horizontal arrangement: the buttons row, then the comment row.
-            val composerType = parameterTypes[6].toString()
-            val rowIndices = list.indices.filter { index ->
-                list[index].isStaticCall() && list[index].methodReference()?.let {
-                    it.parameterTypes.size == 4 && it.parameterTypes[2].toString() == composerType
-                } == true
-            }
+            val rowIndices = findInstructionIndicesReversedOrThrow(POST_ACTION_BAR_ROW_CALL).asReversed()
             if (rowIndices.size < 2) throw PatchException("Could not find the action bar rows")
             val (buttonsRowIndex, commentRowIndex) = rowIndices
             if (!(voteIndex < buttonsRowIndex && commentRowIndex < commentIndex)) {
@@ -105,7 +77,7 @@ val flipPostActionBarPatch = bytecodePatch(
             val appearanceParameter = parameterTypes.indexOfFirst {
                 it.toString() == appearanceReference.parameterTypes[0].toString()
             }
-            val composerRegister = (list[voteIndex] as FiveRegisterInstruction).registerF
+            val composerRegister = getInstruction<FiveRegisterInstruction>(voteIndex).registerF
             if (voteStateParameter < 0 || appearanceParameter < 0 || composerRegister > 15) {
                 throw PatchException("Unexpected vote buttons parameters")
             }
@@ -113,7 +85,7 @@ val flipPostActionBarPatch = bytecodePatch(
             fun changeArrangement(index: Int, extensionMethod: String) {
                 val arrangementRegister = getInstruction<FiveRegisterInstruction>(index).registerC
                 if (arrangementRegister > 15) throw PatchException("Arrangement register out of range")
-                val arrangementType = getInstruction(index).methodReference()!!.parameterTypes[0]
+                val arrangementType = getInstruction(index).getReference<MethodReference>()!!.parameterTypes[0]
                 addInstructionsAtControlFlowLabel(
                     index,
                     """
@@ -127,8 +99,11 @@ val flipPostActionBarPatch = bytecodePatch(
             // From the last change to the first, so the indices stay valid.
 
             // Show the vote buttons in the comment row, before the comment button.
-            val (stateRegister, appearanceRegister, modifierRegister, flagsRegister) =
-                freeLowRegisters(commentIndex, 4, composerRegister)
+            val registerProvider = getFreeRegisterProvider(commentIndex, 4, composerRegister)
+            val stateRegister = registerProvider.getFreeRegister4Bit()
+            val appearanceRegister = registerProvider.getFreeRegister4Bit()
+            val modifierRegister = registerProvider.getFreeRegister4Bit()
+            val flagsRegister = registerProvider.getFreeRegister4Bit()
             addInstructionsWithLabels(
                 commentIndex,
                 """
@@ -152,7 +127,7 @@ val flipPostActionBarPatch = bytecodePatch(
             changeArrangement(buttonsRowIndex, "getButtonsRowArrangement")
 
             // Don't show the vote buttons before the buttons row.
-            val skipRegister = freeLowRegisters(voteIndex, 1).first()
+            val skipRegister = getFreeRegisterProvider(voteIndex, 1).getFreeRegister4Bit()
             addInstructionsWithLabels(
                 voteIndex,
                 """
