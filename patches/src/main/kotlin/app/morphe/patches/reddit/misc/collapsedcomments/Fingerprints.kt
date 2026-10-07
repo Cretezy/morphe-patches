@@ -53,6 +53,7 @@ internal object CommentGetCollapsedFingerprint : Fingerprint(
  * the comment with a different `collapsed` value).
  */
 internal object CommentTreeReplaceItemFingerprint : Fingerprint(
+    definingClass = "Lcom/reddit/comments/tree/",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
     returnType = "Ljava/util/Map;",
     parameters = listOf(
@@ -73,8 +74,5 @@ internal object CommentTreeReplaceItemFingerprint : Fingerprint(
             opcode = Opcode.MOVE_RESULT_OBJECT,
             location = MatchAfterImmediately()
         )
-    ),
-    custom = { _, classDef ->
-        classDef.type.startsWith("Lcom/reddit/comments/tree/")
-    }
+    )
 )

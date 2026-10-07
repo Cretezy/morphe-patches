@@ -8,19 +8,17 @@
 package app.morphe.patches.reddit.misc.collapsedcomments
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.toInstructions
 import app.morphe.patches.reddit.misc.settings.settingsPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
+import app.morphe.util.removeFlags
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
@@ -48,9 +46,7 @@ val rememberCollapsedCommentsPatch = bytecodePatch(
         // 1. Report remembered comments as collapsed. Reddit copies comments in many places
         //    (loading, merging pages, translations), so hook the getter every copy goes through.
         CommentGetCollapsedFingerprint.let {
-            val getIndex = it.instructionMatches.first().index
-            val collapsedField = it.method.getInstruction<ReferenceInstruction>(getIndex).reference as FieldReference
-            val fieldReference = "${collapsedField.definingClass}->${collapsedField.name}:${collapsedField.type}"
+            val collapsedField = it.instructionMatches.first().getFieldAccessed()
 
             it.classDef.apply {
                 // The getter has a single register, so replace its body.
@@ -68,7 +64,7 @@ val rememberCollapsedCommentsPatch = bytecodePatch(
                         ImmutableMethodImplementation(
                             2,
                             """
-                                iget-boolean v0, v1, $fieldReference
+                                iget-boolean v0, v1, $collapsedField
                                 invoke-static { v1, v0 }, $EXTENSION_CLASS->isCollapsed(Ljava/lang/Object;Z)Z
                                 move-result v0
                                 return v0
@@ -81,11 +77,7 @@ val rememberCollapsedCommentsPatch = bytecodePatch(
 
                 // The field is final. Writing it from a method of the same class passes
                 // verification, but drop the flag anyway so the write is always legal.
-                fields.first { field ->
-                    field.name == collapsedField.name && field.type == collapsedField.type
-                }.apply {
-                    accessFlags = accessFlags and AccessFlags.FINAL.value.inv()
-                }
+                collapsedField.removeFlags(AccessFlags.FINAL)
 
                 // Standalone smali has no parameter info, so use v registers (parameters are last).
                 methods.add(
@@ -100,7 +92,7 @@ val rememberCollapsedCommentsPatch = bytecodePatch(
                         ImmutableMethodImplementation(
                             2,
                             """
-                                iput-boolean v1, v0, $fieldReference
+                                iput-boolean v1, v0, $collapsedField
                                 return-void
                             """.toInstructions(),
                             null,
@@ -121,7 +113,7 @@ val rememberCollapsedCommentsPatch = bytecodePatch(
                         ImmutableMethodImplementation(
                             2,
                             """
-                                iget-boolean v0, v1, $fieldReference
+                                iget-boolean v0, v1, $collapsedField
                                 return v0
                             """.toInstructions(),
                             null,
@@ -135,18 +127,18 @@ val rememberCollapsedCommentsPatch = bytecodePatch(
         // 2. Record every collapse and expand done in the comment tree.
         CommentTreeReplaceItemFingerprint.let {
             it.method.apply {
-                val invokeIndex = it.instructionMatches[1].index
-                val moveResultIndex = it.instructionMatches.last().index
+                val invokeMatch = it.instructionMatches[1]
+                val moveResultMatch = it.instructionMatches.last()
 
                 // invoke-interface { transform, oldItem }, Function1->invoke(Object)Object
-                val oldItemRegister = getInstruction<FiveRegisterInstruction>(invokeIndex).registerD
-                val newItemRegister = getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
+                val oldItemRegister = invokeMatch.getInstruction<FiveRegisterInstruction>().registerD
+                val newItemRegister = moveResultMatch.getInstruction<OneRegisterInstruction>().registerA
                 if (oldItemRegister == newItemRegister) {
                     throw PatchException("Old comment tree item is overwritten by the new one")
                 }
 
                 addInstruction(
-                    moveResultIndex + 1,
+                    moveResultMatch.index + 1,
                     "invoke-static { v$oldItemRegister, v$newItemRegister }, " +
                             "$EXTENSION_CLASS->onCommentTreeItemUpdated(Ljava/lang/Object;Ljava/lang/Object;)V"
                 )
