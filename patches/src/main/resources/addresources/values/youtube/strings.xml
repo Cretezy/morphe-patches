@@ -914,6 +914,11 @@ To show the \'Audio Track\' menu, change \'Spoof video streams\' to any client e
     <string name="morphe_hide_autoplay_preview_title">Hide autoplay preview</string>
     <string name="morphe_hide_autoplay_preview_summary">Hides the upcoming video preview in fullscreen before autoplay begins</string>
 
+    <!-- layout.player.tapandhold.hideTapAndHoldGradientPatch -->
+    <string name="morphe_hide_tap_and_hold_gradient_title">Hide tap and hold gradient</string>
+    <string name="morphe_hide_tap_and_hold_gradient_summary_on">Player controls gradient is hidden when sliding your finger while holding to speed up</string>
+    <string name="morphe_hide_tap_and_hold_gradient_summary_off">Player controls gradient is shown when sliding your finger while holding to speed up</string>
+
     <!-- layout.buttons.overlay.hidePlayerOverlayButtonsPatch -->
     <string name="morphe_overlay_buttons_screen_title">Overlay buttons</string>
     <string name="morphe_overlay_buttons_screen_summary">Choose which buttons appear over the video player</string>
