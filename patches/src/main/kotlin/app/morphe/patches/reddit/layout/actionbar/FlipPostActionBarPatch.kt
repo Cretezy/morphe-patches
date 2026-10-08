@@ -1,6 +1,6 @@
 /*
  * Copyright 2026 Morphe.
- * https://github.com/MorpheApp/morphe-patches
+ * https://github.com/MorpheApp/morphe-patches/pull/3541
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  */
@@ -32,7 +32,7 @@ val flipPostActionBarPatch = bytecodePatch(
     description = "Adds options to move the vote and comment buttons of posts to the right side, " +
             "and to swap the vote and comment buttons."
 ) {
-    // Only tested on the experimental versions.
+    // Only tested on the experimental versions, and does not match 2026.38.0.
     compatibleWith(
         with(COMPATIBILITY_REDDIT) {
             Compatibility(
@@ -42,7 +42,7 @@ val flipPostActionBarPatch = bytecodePatch(
                 apkFileType = apkFileType,
                 appIconColor = appIconColor,
                 signatures = signatures,
-                targets = targets.filter { it.isExperimental }
+                targets = targets.filter { it.isExperimental && it.version != "2026.38.0" }
             )
         }
     )
