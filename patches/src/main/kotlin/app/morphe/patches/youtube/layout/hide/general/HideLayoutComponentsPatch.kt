@@ -10,6 +10,7 @@
 
 package app.morphe.patches.youtube.layout.hide.general
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -1225,25 +1226,28 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // Track when tap and hold starts. Other patches change this method too,
         // so match it again before and after changing it.
-        val speedControllerType: String
         TapAndHoldSpeedFingerprint.let {
             it.clearMatch()
             // The class that overrides the speed, and restores it when tap and hold ends.
-            speedControllerType = it.instructionMatches[6].getFieldAccessed().type
+            var speedControllerType = it.instructionMatches[6].getFieldAccessed().type
 
             // Right after the "already speeding up" check.
             it.method.addInstructionsAtControlFlowLabel(
                 it.instructionMatches[5].index + 1,
                 "invoke-static { }, $LAYOUT_COMPONENTS_FILTER->onTapAndHoldStart()V"
             )
-            it.clearMatch()
-        }
 
-        // Track when tap and hold ends.
-        tapAndHoldSpeedRestoreFingerprint(speedControllerType).method.addInstruction(
-            0,
-            "invoke-static { }, $LAYOUT_COMPONENTS_FILTER->onTapAndHoldEnd()V"
-        )
+            // Track when tap and hold ends.
+            Fingerprint(
+                definingClass = speedControllerType,
+                accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+                returnType = "V",
+                parameters = listOf()
+            ).method.addInstruction(
+                0,
+                "invoke-static { }, $LAYOUT_COMPONENTS_FILTER->onTapAndHoldEnd()V"
+            )
+        }
 
         // Sliding up in fullscreen drags the "More videos" panel, which also shows the
         // player controls. While holding, the controls stay hidden but their top and
