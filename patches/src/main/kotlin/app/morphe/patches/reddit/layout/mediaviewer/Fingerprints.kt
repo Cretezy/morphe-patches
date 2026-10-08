@@ -78,7 +78,7 @@ internal object JoinConversationDockFingerprint : Fingerprint(
         ),
         opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
         // Whether the dock is shown.
-        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        opcode(Opcode.IF_EQZ, location = MatchAfterWithin(3)),
         literal(60, listOf(Opcode.ADD_INT_LIT8))
     )
 )

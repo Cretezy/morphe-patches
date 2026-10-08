@@ -74,7 +74,8 @@ val feedMediaMaxHeightPatch = bytecodePatch(
     name = "Feed media max height",
     description = "Adds an option to change the maximum height of images, videos and galleries in the feed."
 ) {
-    compatibleWith(COMPATIBILITY_REDDIT)
+    // Does not match versions before 2026.24.0.
+    compatibleWith(COMPATIBILITY_REDDIT.excluding("2026.10.0", "2026.14.0"))
 
     dependsOn(settingsPatch)
 

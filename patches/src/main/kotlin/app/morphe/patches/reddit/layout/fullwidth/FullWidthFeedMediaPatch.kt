@@ -34,7 +34,8 @@ val fullWidthFeedMediaPatch = bytecodePatch(
     description = "Adds an option to show images and videos edge to edge in the feed and post details, " +
             "without side padding and rounded corners."
 ) {
-    compatibleWith(COMPATIBILITY_REDDIT)
+    // Does not match versions before 2026.24.0.
+    compatibleWith(COMPATIBILITY_REDDIT.excluding("2026.10.0", "2026.14.0"))
 
     dependsOn(settingsPatch)
 
