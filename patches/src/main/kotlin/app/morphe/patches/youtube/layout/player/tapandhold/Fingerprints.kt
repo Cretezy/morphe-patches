@@ -16,6 +16,17 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
+ * Restores the playback speed when tap and hold ends. The only public method
+ * of the speed controller without parameters and return value.
+ */
+internal fun tapAndHoldSpeedRestoreFingerprint(speedControllerType: String) = Fingerprint(
+    definingClass = speedControllerType,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf()
+)
+
+/**
  * Called while the fullscreen "More videos" panel is dragged.
  * Shows the player controls when the drag goes up while the panel is peeking.
  */
