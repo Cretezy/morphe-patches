@@ -12,9 +12,9 @@ import static app.morphe.extension.shared.StringRef.str;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.reddit.patches.CustomFontPatch;
 import app.morphe.extension.reddit.patches.DisableModernHomePatch;
 import app.morphe.extension.reddit.patches.DisableScreenshotPopupPatch;
-import app.morphe.extension.reddit.patches.CustomFontPatch;
 import app.morphe.extension.reddit.patches.FlipPostActionBarPatch;
 import app.morphe.extension.reddit.patches.ForceSystemFontPatch;
 import app.morphe.extension.reddit.patches.HideAskButtonPatch;
@@ -44,8 +44,8 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 HideAskButtonPatch.isPatchIncluded() ||
                 HideCommunitiesShelf.isPatchIncluded() ||
                 HideTrendingShelvesPatch.isPatchIncluded() ||
-                FlipPostActionBarPatch.isPatchIncluded() ||
-                RemoveSubRedditDialogPatch.isPatchIncluded();
+                RemoveSubRedditDialogPatch.isPatchIncluded() ||
+                ShowViewCountPatch.isPatchIncluded();
     }
 
     @Override
@@ -118,11 +118,11 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
         if (FlipPostActionBarPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
-                    FlipPostActionBarPatch.FLIP_POST_ACTION_BAR
+                    Settings.FLIP_POST_ACTION_BAR
             ));
             addPreference(new BooleanSettingPreference(
                     context,
-                    FlipPostActionBarPatch.SWAP_POST_VOTE_COMMENT_BUTTONS
+                    Settings.SWAP_POST_VOTE_COMMENT_BUTTONS
             ));
         }
     }
