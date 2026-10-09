@@ -21,10 +21,12 @@ public class IntegerSettingPreference extends ResettableEditTextPreference {
     public IntegerSettingPreference(Context context, IntegerSetting setting) {
         super(context);
         setTitle(str(setting.key + "_title"));
+
         String summaryKey = setting.key + "_summary";
         if (ResourceUtils.getStringIdentifier(summaryKey) != 0) {
             setSummary(str(summaryKey));
         }
+
         setKey(setting.key);
         setSetting(setting);
         setText(String.valueOf(setting.get()));
