@@ -32,29 +32,24 @@ val keepFeedPositionPatch = bytecodePatch(
         // (Feed.lastPostIdVisited), which re-creates the feed LazyListState with the opened
         // post as the first visible item, so the feed jumps. Home also scrolls to it directly
         // ("android_feed_pdp_scroll_anchor" experiment). Stop remembering the opened post.
-        val postIdType = FeedStateToStringFingerprint.let {
-            (it.method.getInstruction<ReferenceInstruction>(
-                it.instructionMatches.last().index
-            ).reference as FieldReference).type
-        }
+        val postIdType = FeedStateToStringFingerprint.instructionMatches
+            .last().getFieldAccessed().type
 
         rememberOpenedPostFingerprint(
             postIdType,
             FeedStateToStringFingerprint.classDef.type
         ).matchAll().forEach { match ->
-            match.method.apply {
-                val register = findFreeRegister(0)
-                addInstructionsWithLabels(
-                    0,
-                    """
-                        invoke-static { }, $EXTENSION_CLASS->skipRememberOpenedPost()Z
-                        move-result v$register
-                        if-eqz v$register, :remember_opened_post
-                        return-void
-                    """,
-                    ExternalLabel("remember_opened_post", getInstruction(0))
-                )
-            }
+            match.method.addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $EXTENSION_CLASS->skipRememberOpenedPost()Z
+                    move-result v0
+                    if-eqz v0, :remember_opened_post
+                    return-void
+                    :remember_opened_post
+                    nop
+                """
+            )
         }
 
         setExtensionIsPatchIncluded(EXTENSION_CLASS)
