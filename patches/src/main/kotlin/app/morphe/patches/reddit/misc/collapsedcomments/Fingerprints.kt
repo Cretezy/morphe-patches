@@ -51,6 +51,8 @@ internal object CommentGetCollapsedFingerprint : Fingerprint(
  *
  * Collapse, expand and collapse-thread all go through it (with a transform that copies
  * the comment with a different `collapsed` value).
+ *
+ * Before 2026.14.0 the Function1 type is obfuscated, so it is not used for matching.
  */
 internal object CommentTreeReplaceItemFingerprint : Fingerprint(
     definingClass = "Lcom/reddit/comments/tree/",
@@ -59,7 +61,7 @@ internal object CommentTreeReplaceItemFingerprint : Fingerprint(
     parameters = listOf(
         "Ljava/util/Map;",
         "Ljava/lang/Object;",
-        "Lkotlin/jvm/functions/Function1;"
+        "L"
     ),
     filters = listOf(
         methodCall(
@@ -67,8 +69,9 @@ internal object CommentTreeReplaceItemFingerprint : Fingerprint(
             name = "get"
         ),
         methodCall(
-            definingClass = "Lkotlin/jvm/functions/Function1;",
-            name = "invoke"
+            name = "invoke",
+            parameters = listOf("Ljava/lang/Object;"),
+            returnType = "Ljava/lang/Object;"
         ),
         opcode(
             opcode = Opcode.MOVE_RESULT_OBJECT,

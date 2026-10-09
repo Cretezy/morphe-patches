@@ -7,24 +7,24 @@
 
 package app.morphe.extension.reddit.patches;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 
+import androidx.annotation.GuardedBy;
 import androidx.annotation.Nullable;
 
 import com.reddit.domain.model.Comment;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import app.morphe.extension.reddit.settings.Settings;
 import app.morphe.extension.shared.Logger;
-import app.morphe.extension.shared.Utils;
-import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.settings.preference.SharedPrefCategory;
 
 /**
  * Remembers which comments the user collapsed, and shows them collapsed
@@ -37,28 +37,36 @@ import app.morphe.extension.shared.settings.BooleanSetting;
 @SuppressWarnings("unused")
 public final class RememberCollapsedCommentsPatch {
 
-    /**
-     * Declared here instead of in the shared Settings class, so the patch still works when
-     * combined with another patch bundle whose copy of Settings is used instead of this one.
-     */
-    public static final BooleanSetting REMEMBER_COLLAPSED_COMMENTS =
-            new BooleanSetting("morphe_remember_collapsed_comments", true);
-
-    private static final String PREFS_NAME = "morphe_collapsed_comments";
     private static final int MAX_ENTRIES = 5000;
     private static final long MAX_AGE_MILLIS = 180L * 24 * 60 * 60 * 1000;
 
+    private static final SharedPreferences prefs = new SharedPrefCategory(
+            "morphe_collapsed_comments").preferences;
+
     /**
-     * Comment id to the time it was collapsed. Null until loaded.
+     * Comment id to the time it was collapsed. Same content as {@link #prefs}.
      */
-    @Nullable
-    private static volatile Map<String, Long> collapsedComments;
+    private static final Map<String, Long> collapsedComments = new ConcurrentHashMap<>();
 
     /**
      * Comments marked as collapsed by this patch, by id. Reddit caches loaded comments,
      * so these are reset when the comment is expanded and forgotten.
      */
+    @GuardedBy("itself")
     private static final Map<String, List<WeakReference<Comment>>> markedComments = new HashMap<>();
+
+    static {
+        for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+            if (entry.getValue() instanceof Long) {
+                collapsedComments.put(entry.getKey(), (Long) entry.getValue());
+            }
+        }
+
+        SharedPreferences.Editor editor = prefs.edit();
+        if (trim(editor, System.currentTimeMillis())) editor.apply();
+
+        Logger.printDebug(() -> "Loaded " + collapsedComments.size() + " collapsed comments");
+    }
 
     /**
      * @return If this patch was included during patching.
@@ -72,22 +80,18 @@ public final class RememberCollapsedCommentsPatch {
      * <p>
      * Called by Comment.getCollapsed() with the collapsed flag Reddit set.
      */
-    public static boolean isCollapsed(Object item, boolean collapsed) {
+    public static boolean isCollapsed(Comment comment, boolean collapsed) {
         if (collapsed) return true;
 
         try {
-            if (!REMEMBER_COLLAPSED_COMMENTS.get()) return false;
+            if (!Settings.REMEMBER_COLLAPSED_COMMENTS.get()) return false;
 
-            Map<String, Long> collapsedIds = getCollapsedComments();
-            if (collapsedIds == null || collapsedIds.isEmpty()) return false;
-
-            Comment comment = (Comment) item;
             String id = comment.getKindWithId();
-            if (id == null || !collapsedIds.containsKey(id)) return false;
+            if (id == null || !collapsedComments.containsKey(id)) return false;
 
             // Store it in the comment too, so copies made from it stay collapsed
             // and an expand can be told apart from other changes to the comment.
-            comment.morphe_setCollapsed(true);
+            comment.patch_setCollapsed(true);
             synchronized (markedComments) {
                 List<WeakReference<Comment>> marked = markedComments.get(id);
                 if (marked == null) {
@@ -111,14 +115,13 @@ public final class RememberCollapsedCommentsPatch {
      */
     public static void onCommentTreeItemUpdated(@Nullable Object oldItem, @Nullable Object newItem) {
         try {
-            if (!(oldItem instanceof Comment) || !(newItem instanceof Comment)) return;
+            if (!(oldItem instanceof Comment) || !(newItem instanceof Comment newComment)) return;
 
             final boolean wasCollapsed = ((Comment) oldItem).getCollapsed();
-            Comment newComment = (Comment) newItem;
             // The raw flag, since the getter would still report a remembered comment as collapsed.
-            final boolean collapsed = newComment.morphe_getRawCollapsed();
+            final boolean collapsed = newComment.patch_getRawCollapsed();
             if (wasCollapsed == collapsed) return;
-            if (!REMEMBER_COLLAPSED_COMMENTS.get()) return;
+            if (!Settings.REMEMBER_COLLAPSED_COMMENTS.get()) return;
 
             String id = newComment.getKindWithId();
             if (id == null) return;
@@ -134,23 +137,17 @@ public final class RememberCollapsedCommentsPatch {
     }
 
     private static synchronized void remember(String id) {
-        Map<String, Long> collapsedIds = getCollapsedComments();
-        SharedPreferences prefs = getPrefs();
-        if (collapsedIds == null || prefs == null) return;
-
         final long now = System.currentTimeMillis();
-        collapsedIds.put(id, now);
+        collapsedComments.put(id, now);
         SharedPreferences.Editor editor = prefs.edit().putLong(id, now);
-        trim(collapsedIds, editor, now);
+        trim(editor, now);
         editor.apply();
 
         Logger.printDebug(() -> "Remembered collapsed comment: " + id);
     }
 
     private static synchronized void forget(String id) {
-        Map<String, Long> collapsedIds = getCollapsedComments();
-        SharedPreferences prefs = getPrefs();
-        if (collapsedIds == null || prefs == null || collapsedIds.remove(id) == null) return;
+        if (collapsedComments.remove(id) == null) return;
 
         prefs.edit().remove(id).apply();
 
@@ -161,7 +158,7 @@ public final class RememberCollapsedCommentsPatch {
         if (marked != null) {
             for (WeakReference<Comment> reference : marked) {
                 Comment comment = reference.get();
-                if (comment != null) comment.morphe_setCollapsed(false);
+                if (comment != null) comment.patch_setCollapsed(false);
             }
         }
 
@@ -170,57 +167,25 @@ public final class RememberCollapsedCommentsPatch {
 
     /**
      * Removes expired entries, and the oldest ones above the limit.
+     *
+     * @return If any entry was removed.
      */
-    private static void trim(Map<String, Long> collapsedIds, SharedPreferences.Editor editor, long now) {
-        List<Map.Entry<String, Long>> entries = new ArrayList<>(collapsedIds.entrySet());
-        Collections.sort(entries, (a, b) -> Long.compare(a.getValue(), b.getValue()));
+    private static boolean trim(SharedPreferences.Editor editor, long now) {
+        List<Map.Entry<String, Long>> entries = new ArrayList<>(collapsedComments.entrySet());
+        entries.sort(Comparator.comparingLong(Map.Entry::getValue));
 
+        boolean removed = false;
         int excess = entries.size() - MAX_ENTRIES;
         for (Map.Entry<String, Long> entry : entries) {
             if (excess <= 0 && now - entry.getValue() <= MAX_AGE_MILLIS) {
                 // Sorted oldest first, so everything after this is kept.
                 break;
             }
-            collapsedIds.remove(entry.getKey());
+            collapsedComments.remove(entry.getKey());
             editor.remove(entry.getKey());
             excess--;
+            removed = true;
         }
-    }
-
-    @Nullable
-    private static Map<String, Long> getCollapsedComments() {
-        Map<String, Long> collapsedIds = collapsedComments;
-        if (collapsedIds != null) return collapsedIds;
-
-        synchronized (RememberCollapsedCommentsPatch.class) {
-            if (collapsedComments != null) return collapsedComments;
-
-            SharedPreferences prefs = getPrefs();
-            if (prefs == null) return null;
-
-            Map<String, Long> map = new ConcurrentHashMap<>();
-            for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
-                if (entry.getValue() instanceof Long) {
-                    map.put(entry.getKey(), (Long) entry.getValue());
-                }
-            }
-
-            final int sizeBefore = map.size();
-            SharedPreferences.Editor editor = prefs.edit();
-            trim(map, editor, System.currentTimeMillis());
-            if (map.size() != sizeBefore) editor.apply();
-
-            Logger.printDebug(() -> "Loaded " + map.size() + " collapsed comments");
-            collapsedComments = map;
-            return map;
-        }
-    }
-
-    @Nullable
-    private static SharedPreferences getPrefs() {
-        Context context = Utils.getContext();
-        return context != null
-                ? context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                : null;
+        return removed;
     }
 }

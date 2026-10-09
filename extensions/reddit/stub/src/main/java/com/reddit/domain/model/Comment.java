@@ -12,14 +12,14 @@ public final class Comment extends IComment {
     /**
      * Added during patching by the Remember collapsed comments patch.
      */
-    public void morphe_setCollapsed(boolean collapsed) {
+    public void patch_setCollapsed(boolean collapsed) {
         throw new UnsupportedOperationException("Stub");
     }
 
     /**
-     * Added during patching by the Remember collapsed comments patch.
+     * Copy of the original getCollapsed(), added during patching by the Remember collapsed comments patch.
      */
-    public boolean morphe_getRawCollapsed() {
+    public boolean patch_getRawCollapsed() {
         throw new UnsupportedOperationException("Stub");
     }
 }

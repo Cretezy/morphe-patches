@@ -77,7 +77,7 @@ public class MiscellaneousPreferenceCategory extends ConditionalPreferenceCatego
         if (RememberCollapsedCommentsPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
-                    RememberCollapsedCommentsPatch.REMEMBER_COLLAPSED_COMMENTS
+                    Settings.REMEMBER_COLLAPSED_COMMENTS
             ));
         }
         if (SanitizeSharingLinksPatch.isPatchIncluded()) {
