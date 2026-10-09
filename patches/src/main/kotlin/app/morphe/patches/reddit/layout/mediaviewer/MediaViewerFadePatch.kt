@@ -42,7 +42,7 @@ val mediaViewerFadePatch = bytecodePatch(
     execute {
         if (!is_2026_24_0_or_greater) {
             return@execute Logger.getLogger(this::class.java.name).warning(
-                "'Media viewer fade' does not work with Reddit before 2026.24.0"
+                "'Media viewer fade' requires Reddit 2026.24.0+"
             )
         }
 

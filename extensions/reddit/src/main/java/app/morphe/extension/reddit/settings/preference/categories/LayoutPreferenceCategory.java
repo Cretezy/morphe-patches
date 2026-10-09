@@ -20,8 +20,7 @@ import app.morphe.extension.reddit.patches.ForceSystemFontPatch;
 import app.morphe.extension.reddit.patches.FullWidthFeedMediaPatch;
 import app.morphe.extension.reddit.patches.HideAskButtonPatch;
 import app.morphe.extension.reddit.patches.HideCommunitiesShelf;
-import app.morphe.extension.reddit.patches.HideJoinConversationButtonPatch;
-import app.morphe.extension.reddit.patches.HideMediaViewerOverlayPatch;
+import app.morphe.extension.reddit.patches.HideMediaViewerComponentsPatch;
 import app.morphe.extension.reddit.patches.HideTrendingShelvesPatch;
 import app.morphe.extension.reddit.patches.KeepFeedPositionPatch;
 import app.morphe.extension.reddit.patches.MediaViewerBlackBackgroundPatch;
@@ -55,8 +54,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                 MediaViewerFadePatch.isPatchIncluded() ||
                 KeepFeedPositionPatch.isPatchIncluded() ||
                 FeedMediaMaxHeightPatch.isPatchIncluded() ||
-                HideMediaViewerOverlayPatch.isPatchIncluded() ||
-                HideJoinConversationButtonPatch.isPatchIncluded() ||
+                HideMediaViewerComponentsPatch.isPatchIncluded() ||
                 MediaViewerBlackBackgroundPatch.isPatchIncluded() ||
                 RemoveSubRedditDialogPatch.isPatchIncluded();
     }
@@ -156,18 +154,18 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
             ));
         }
 
-        if (HideMediaViewerOverlayPatch.isPatchIncluded()) {
-            addPreference(new BooleanSettingPreference(
-                    context,
-                    Settings.HIDE_MEDIA_VIEWER_OVERLAY
-            ));
-        }
-
-        if (HideJoinConversationButtonPatch.isPatchIncluded()) {
+        if (HideMediaViewerComponentsPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
                     Settings.HIDE_JOIN_CONVERSATION_BUTTON
             ));
+
+            if (HideMediaViewerComponentsPatch.isHideOverlayIncluded()) {
+                addPreference(new BooleanSettingPreference(
+                        context,
+                        Settings.HIDE_MEDIA_VIEWER_OVERLAY
+                ));
+            }
         }
 
         if (MediaViewerBlackBackgroundPatch.isPatchIncluded()) {

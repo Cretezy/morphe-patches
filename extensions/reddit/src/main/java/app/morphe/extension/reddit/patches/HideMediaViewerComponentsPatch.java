@@ -10,12 +10,20 @@ package app.morphe.extension.reddit.patches;
 import app.morphe.extension.reddit.settings.Settings;
 
 @SuppressWarnings("unused")
-public final class HideJoinConversationButtonPatch {
+public final class HideMediaViewerComponentsPatch {
 
     /**
      * @return If this patch was included during patching.
      */
     public static boolean isPatchIncluded() {
+        return false;  // Modified during patching.
+    }
+
+    /**
+     * @return If hiding the media viewer overlay was included during patching.
+     *         It requires a newer app version than the rest of this patch.
+     */
+    public static boolean isHideOverlayIncluded() {
         return false;  // Modified during patching.
     }
 
@@ -37,5 +45,15 @@ public final class HideJoinConversationButtonPatch {
      */
     public static boolean skipStatusBarPadding(boolean original) {
         return original && !Settings.HIDE_JOIN_CONVERSATION_BUTTON.get();
+    }
+
+    /**
+     * Injection point.
+     * Called when the media viewer shows a post.
+     *
+     * @return True to start with the title, buttons and video controls hidden.
+     */
+    public static boolean hideOverlay() {
+        return Settings.HIDE_MEDIA_VIEWER_OVERLAY.get();
     }
 }

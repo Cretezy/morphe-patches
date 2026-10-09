@@ -32,7 +32,7 @@ private const val EXTENSION_CLASS =
 val fullWidthFeedMediaPatch = bytecodePatch(
     name = "Full width feed media",
     description = "Adds an option to show images and videos edge to edge in the feed and post details, " +
-            "without side padding and rounded corners. This patch works with Reddit 2026.24.0 and newer."
+            "without side padding and rounded corners."
 ) {
     compatibleWith(COMPATIBILITY_REDDIT)
 
