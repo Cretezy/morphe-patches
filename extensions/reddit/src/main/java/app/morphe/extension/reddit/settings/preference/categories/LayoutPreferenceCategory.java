@@ -12,9 +12,9 @@ import static app.morphe.extension.shared.StringRef.str;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.reddit.patches.CustomFontPatch;
 import app.morphe.extension.reddit.patches.DisableModernHomePatch;
 import app.morphe.extension.reddit.patches.DisableScreenshotPopupPatch;
-import app.morphe.extension.reddit.patches.CustomFontPatch;
 import app.morphe.extension.reddit.patches.FeedMediaMaxHeightPatch;
 import app.morphe.extension.reddit.patches.ForceSystemFontPatch;
 import app.morphe.extension.reddit.patches.FullWidthFeedMediaPatch;
@@ -33,7 +33,7 @@ import app.morphe.extension.reddit.settings.preference.BooleanSettingPreference;
 import app.morphe.extension.reddit.settings.preference.CustomFontFilePreference;
 import app.morphe.extension.reddit.settings.preference.CustomFontTogglePreference;
 import app.morphe.extension.reddit.settings.preference.ForceSystemFontPreference;
-import app.morphe.extension.reddit.settings.preference.IntegerSettingPreference;
+import app.morphe.extension.reddit.settings.preference.NumberSettingPreference;
 
 @SuppressWarnings("deprecation")
 public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
@@ -131,49 +131,49 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
         if (FullWidthFeedMediaPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
-                    FullWidthFeedMediaPatch.FULL_WIDTH_FEED_MEDIA
+                    Settings.FULL_WIDTH_FEED_MEDIA
             ));
         }
 
         if (MediaViewerFadePatch.isPatchIncluded()) {
-            addPreference(new IntegerSettingPreference(
+            addPreference(new NumberSettingPreference(
                     context,
-                    MediaViewerFadePatch.MEDIA_VIEWER_FADE
+                    Settings.MEDIA_VIEWER_FADE
             ));
         }
 
         if (KeepFeedPositionPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
-                    KeepFeedPositionPatch.KEEP_FEED_POSITION
+                    Settings.KEEP_FEED_POSITION
             ));
         }
 
         if (FeedMediaMaxHeightPatch.isPatchIncluded()) {
-            addPreference(new IntegerSettingPreference(
+            addPreference(new NumberSettingPreference(
                     context,
-                    FeedMediaMaxHeightPatch.FEED_MEDIA_MAX_HEIGHT
+                    Settings.FEED_MEDIA_MAX_HEIGHT
             ));
         }
 
         if (HideMediaViewerOverlayPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
-                    HideMediaViewerOverlayPatch.HIDE_MEDIA_VIEWER_OVERLAY
+                    Settings.HIDE_MEDIA_VIEWER_OVERLAY
             ));
         }
 
         if (HideJoinConversationButtonPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
-                    HideJoinConversationButtonPatch.HIDE_JOIN_CONVERSATION_BUTTON
+                    Settings.HIDE_JOIN_CONVERSATION_BUTTON
             ));
         }
 
         if (MediaViewerBlackBackgroundPatch.isPatchIncluded()) {
             addPreference(new BooleanSettingPreference(
                     context,
-                    MediaViewerBlackBackgroundPatch.MEDIA_VIEWER_BLACK_BACKGROUND
+                    Settings.MEDIA_VIEWER_BLACK_BACKGROUND
             ));
         }
     }

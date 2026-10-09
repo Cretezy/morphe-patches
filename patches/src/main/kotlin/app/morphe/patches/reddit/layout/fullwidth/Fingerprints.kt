@@ -9,16 +9,15 @@ package app.morphe.patches.reddit.layout.fullwidth
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
+import app.morphe.patcher.InstructionLocation.MatchFirst
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
-import app.morphe.util.getReference
-import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 /**
  * toString of a feed post style, which logs whether media is inset.
@@ -35,6 +34,29 @@ internal object FeedPostStyleToStringFingerprint : Fingerprint(
             location = MatchAfterWithin(3)
         )
     )
+)
+
+/**
+ * Getter of the feed post style 'mediaInsetEnabled' field.
+ */
+internal fun mediaInsetGetterFingerprint(definingClass: String, insetField: FieldReference) = Fingerprint(
+    definingClass = definingClass,
+    returnType = "Z",
+    parameters = listOf(),
+    filters = listOf(
+        fieldAccess(insetField, Opcode.IGET_BOOLEAN, location = MatchFirst())
+    )
+)
+
+/**
+ * The 'mediaInsetEnabled' getter of every feed post style (regular, crosspost, ...),
+ * which all extend the same base class.
+ */
+internal fun feedPostStyleMediaInsetFingerprint(baseClassType: String, getterName: String) = Fingerprint(
+    name = getterName,
+    returnType = "Z",
+    parameters = listOf(),
+    custom = { _, classDef -> classDef.superclass == baseClassType }
 )
 
 /**
@@ -110,6 +132,17 @@ internal object PostImagePropsToStringFingerprint : Fingerprint(
 )
 
 /**
+ * Constructor of the image component props, which sets whether the image is inset.
+ */
+internal fun postImagePropsConstructorFingerprint(definingClass: String, insetField: FieldReference) = Fingerprint(
+    definingClass = definingClass,
+    name = "<init>",
+    filters = listOf(
+        fieldAccess(insetField, Opcode.IPUT_BOOLEAN)
+    )
+)
+
+/**
  * toString of the post details content props, which logs the post content first.
  */
 internal object PostContentPropsToStringFingerprint : Fingerprint(
@@ -137,85 +170,74 @@ internal object GifAndVideoContentToStringFingerprint : Fingerprint(
 )
 
 /**
- * Lambda showing the content of a post in the post details. Its boolean parameter pads
+ * Lambda showing the content of a post in the post details. Its 5th parameter pads
  * the content at the sides. Videos are padded by it, while images inset themselves.
  */
 internal fun postContentLambdaConstructorFingerprint(propsType: String) = Fingerprint(
     name = "<init>",
     returnType = "V",
-    // Parameter declarations require an exact count; only these positions are fixed.
-    custom = { method, _ ->
-        val parameters = method.parameterTypes.map { it.toString() }
-        parameters.firstOrNull() == propsType && parameters.getOrNull(4) == "Z"
-    }
+    parameters = listOf(
+        propsType,
+        "L",
+        "L",
+        "L",
+        "Z",
+        "L",
+        "L",
+        "L",
+        "L",
+        "Z",
+        "Ljava/lang/Float;",
+        "Z",
+        "Z"
+    )
 )
-
-private const val POST_VIDEO_VISIBILITY_TYPE =
-    "Lcom/reddit/postdetail/ui/video/PostUnitGifOrVideoContentScreenVisibility;"
 
 /**
  * GIF or video in the post details: (videoInfo, autoplay, width, height, ...).
  * The width and height are the display size, for the screen width minus the side padding.
+ * Its 15th parameter sizes the video to that width and height.
  */
 internal object PostDetailVideoFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
-    // Allow trailing parameters and the visibility type at any position, which an exact list cannot express.
-    custom = { method, _ ->
-        val parameters = method.parameterTypes.map { it.toString() }
-        method.implementation != null &&
-                parameters.getOrNull(1) == "Z" &&
-                parameters.getOrNull(2) == "I" &&
-                parameters.getOrNull(3) == "I" &&
-                parameters.contains(POST_VIDEO_VISIBILITY_TYPE)
-    }
+    filters = listOf(
+        string("media_content"),
+        fieldAccess(
+            definingClass = "Landroidx/compose/foundation/layout/IntrinsicSize;",
+            name = "Min"
+        )
+    )
 )
 
 /**
- * Lambda showing a GIF or video in the post details. Its 2nd boolean parameter rounds
- * the corners of the video.
- */
-internal object PostDetailVideoLambdaConstructorFingerprint : Fingerprint(
-    name = "<init>",
-    returnType = "V",
-    parameters = listOf(
-        "L",
-        "Z",
-        "L",
-        "Z",
-        "L",
-        "Lkotlin/jvm/functions/Function1;",
-        "L",
-        "Z",
-        "Ljava/lang/Float;",
-        "Z"
-    ),
-    // The identifying call is in another method of the class, with a variable parameter list.
-    custom = { _, classDef ->
-        classDef.methods.any { method ->
-            method.indexOfFirstInstruction {
-                getReference<MethodReference>()?.parameterTypes?.any {
-                    it.toString() == POST_VIDEO_VISIBILITY_TYPE
-                } == true
-            } >= 0
-        }
-    }
-)
-
-/**
- * Gallery in the post details. Its 14th parameter insets the gallery with side padding
- * and rounded corners.
+ * Gallery in the post details, since 2026.36.0. Its 14th parameter insets the gallery
+ * with side padding and rounded corners.
  */
 internal object PostDetailGalleryFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
+    parameters = listOf(
+        "L",
+        "Z",
+        "Lkotlin/jvm/functions/Function1;",
+        "Ljava/lang/String;",
+        "L",
+        "I",
+        "Z",
+        "Z",
+        "Z",
+        "Z",
+        "Z",
+        "Z",
+        "Lkotlin/jvm/functions/Function0;",
+        "Z",
+        "Ljava/lang/Float;",
+        "L",
+        "I",
+        "I"
+    ),
     filters = listOf(
         string("post_media_gallery_content")
-    ),
-    // Check the injected parameter's register position without fixing the remaining parameter list.
-    custom = { method, _ ->
-        val parameters = method.parameterTypes.map { it.toString() }
-        parameters.size > 14 && parameters[13] == "Z" &&
-                parameters.take(13).none { it == "J" || it == "D" }
-    }
+    )
 )

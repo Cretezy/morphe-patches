@@ -10,24 +10,20 @@ package app.morphe.patches.reddit.layout.mediaviewer
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.fieldAccess
-import app.morphe.patcher.patch.Compatibility
-import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.misc.settings.settingsPatch
+import app.morphe.patches.reddit.misc.version.is_2026_24_0_or_greater
+import app.morphe.patches.reddit.misc.version.is_2026_38_0_or_greater
+import app.morphe.patches.reddit.misc.version.versionCheckPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.findFreeRegister
 import app.morphe.util.findInstructionIndicesReversedOrThrow
-import app.morphe.util.indexOfFirstInstruction
+import app.morphe.util.p0Register
+import app.morphe.util.registersUsed
 import app.morphe.util.setExtensionIsPatchIncluded
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import java.util.logging.Logger
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/MediaViewerFadePatch;"
@@ -39,88 +35,69 @@ val mediaViewerFadePatch = bytecodePatch(
     name = "Media viewer fade",
     description = "Adds an option to lower or remove the dark fade behind the caption when viewing images and videos."
 ) {
-    // Only tested on the recommended and the experimental versions.
-    compatibleWith(
-        with(COMPATIBILITY_REDDIT) {
-            Compatibility(
-                name = name!!,
-                packageName = packageName!!,
-                description = description,
-                apkFileType = apkFileType,
-                appIconColor = appIconColor,
-                signatures = signatures,
-                targets = targets.filter { it.version == "2026.24.0" || it.isExperimental }
-            )
-        }
-    )
+    compatibleWith(COMPATIBILITY_REDDIT)
 
-    dependsOn(settingsPatch)
+    dependsOn(settingsPatch, versionCheckPatch)
 
     execute {
-        MediaViewerChromeFingerprint.method.apply {
-            // The fade is a vertical gradient built from an array of (position, color) pairs.
-            val builderMatch = MediaViewerFadeGradientFingerprint.match(this).instructionMatches.first()
-            val builderIndex = builderMatch.index
-            val brushType = (builderMatch.getInstruction<ReferenceInstruction>().reference as MethodReference).returnType
+        if (!is_2026_24_0_or_greater) {
+            return@execute Logger.getLogger(this::class.java.name).warning(
+                "'Media viewer fade' does not work with Reddit before 2026.24.0"
+            )
+        }
 
-            // Reddit can swap in a darker static gradient right after building the default one.
-            val alternateIndex = indexOfFirstInstruction(
-                builderIndex + 1,
-                fieldAccess(opcode = Opcode.SGET_OBJECT, type = brushType)
-            ).takeIf { it in (builderIndex + 1)..(builderIndex + 6) }
-
-            // Each color stop is made with Color.copy(alpha), a static (long, float) -> long call.
-            val alphaCallIndices = findInstructionIndicesReversedOrThrow(mediaViewerFadeAlphaFilter)
-                .filter { it < builderIndex }
-            if (alphaCallIndices.isEmpty()) throw PatchException("Could not find the fade colors")
-
-            // Newer versions pick between several fade styles. Only the legacy gradient is built here.
-            val scrimStyleIndex = parameterTypes.indexOfFirst { it.toString() == SCRIM_STYLE_CLASS }
-
-            // Patch from the last index backwards, so earlier indices stay valid.
-            if (alternateIndex != null) {
-                // The default gradient is still live in this register when the swap is skipped.
-                val brushRegister = (getInstruction(alternateIndex) as OneRegisterInstruction).registerA
-                val freeRegister = findFreeRegister(alternateIndex, brushRegister)
+        if (is_2026_38_0_or_greater) {
+            // Newer versions pick between several fade styles. Only the legacy gradient
+            // has the color stops patched below.
+            MediaViewerChromeFingerprint.method.apply {
+                // The method is static and has no wide parameters before the style.
+                val styleRegister = p0Register + parameterTypes.indexOfFirst { it.toString() == SCRIM_STYLE_CLASS }
+                val freeRegister = findFreeRegister(0)
                 addInstructionsWithLabels(
-                    alternateIndex,
+                    0,
                     """
-                        invoke-static { }, $EXTENSION_CLASS->useAlternateFade()Z
+                        invoke-static { }, $EXTENSION_CLASS->useLegacyFadeStyle()Z
                         move-result v$freeRegister
-                        if-eqz v$freeRegister, :keep_default_fade
-                    """,
-                    ExternalLabel("keep_default_fade", getInstruction(alternateIndex + 1))
+                        if-eqz v$freeRegister, :keep_fade_style
+                        sget-object v$styleRegister, $SCRIM_STYLE_CLASS->LEGACY_GRADIENT:$SCRIM_STYLE_CLASS
+                        :keep_fade_style
+                        nop
+                    """
                 )
             }
-
-            alphaCallIndices.forEach { index ->
-                val instruction = getInstruction(index)
-                val alphaRegister = if (instruction is RegisterRangeInstruction) {
-                    instruction.startRegister + 2
-                } else {
-                    (instruction as FiveRegisterInstruction).registerE
+        } else {
+            // Reddit can swap in a darker static gradient right after building the default one.
+            MediaViewerChromeLegacyFingerprint.let {
+                it.method.apply {
+                    val alternateIndex = it.instructionMatches[3].index
+                    // The default gradient is still live in this register when the swap is skipped.
+                    val brushRegister = getInstruction<OneRegisterInstruction>(alternateIndex).registerA
+                    val freeRegister = findFreeRegister(alternateIndex, brushRegister)
+                    addInstructionsWithLabels(
+                        alternateIndex,
+                        """
+                            invoke-static { }, $EXTENSION_CLASS->useAlternateFade()Z
+                            move-result v$freeRegister
+                            if-eqz v$freeRegister, :keep_default_fade
+                        """,
+                        ExternalLabel("keep_default_fade", getInstruction(alternateIndex + 1))
+                    )
                 }
+            }
+        }
+
+        // The fade is a vertical gradient built from an array of (position, color) pairs.
+        // Each color stop is made with Color.copy(alpha).
+        MediaViewerChromeFingerprint.method.apply {
+            findInstructionIndicesReversedOrThrow(mediaViewerFadeAlphaFilter).forEach { index ->
+                // Color.copy(long, float): the long uses 2 registers, then the alpha.
+                val alphaRegister = getInstruction(index).registersUsed[2]
 
                 addInstructions(
                     index,
                     """
                         invoke-static/range { v$alphaRegister .. v$alphaRegister }, $EXTENSION_CLASS->scaleFadeAlpha(F)F
                         move-result v$alphaRegister
-                    """
-                )
-            }
-
-            if (scrimStyleIndex >= 0) {
-                if (!AccessFlags.STATIC.isSet(accessFlags)) throw PatchException("Expected a static method")
-                val styleRegister = "p" + parameters.take(scrimStyleIndex).sumOf { parameter ->
-                    if (parameter.type == "J" || parameter.type == "D") 2L else 1L
-                }
-                addInstructions(
-                    0,
-                    """
-                        invoke-static/range { $styleRegister .. $styleRegister }, $EXTENSION_CLASS->getScrimStyle(Ljava/lang/Enum;)Ljava/lang/Enum;
-                        move-result-object $styleRegister
-                        check-cast $styleRegister, $SCRIM_STYLE_CLASS
                     """
                 )
             }

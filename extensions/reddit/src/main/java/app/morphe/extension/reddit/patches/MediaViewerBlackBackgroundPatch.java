@@ -10,7 +10,7 @@ package app.morphe.extension.reddit.patches;
 import android.app.Activity;
 import android.content.ContextWrapper;
 
-import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.reddit.settings.Settings;
 
 @SuppressWarnings("unused")
 public final class MediaViewerBlackBackgroundPatch {
@@ -21,12 +21,6 @@ public final class MediaViewerBlackBackgroundPatch {
     private static final long BLACK = 0xFF000000L << 32;
 
     private static final String MEDIA_VIEWER_ACTIVITY = "com.reddit.fullbleedplayer.common.FbpActivity";
-
-    /**
-     * Declared here instead of in the shared Settings class, so the patch still works when
-     * combined with another patch bundle whose copy of Settings is used instead of this one.
-     */
-    public static final BooleanSetting MEDIA_VIEWER_BLACK_BACKGROUND = new BooleanSetting("morphe_media_viewer_black_background", false);
 
     /**
      * @return If this patch was included during patching.
@@ -41,7 +35,7 @@ public final class MediaViewerBlackBackgroundPatch {
      * @return Background color of the media viewer, as a Compose color.
      */
     public static long getBackgroundColor(long original) {
-        return MEDIA_VIEWER_BLACK_BACKGROUND.get() ? BLACK : original;
+        return Settings.MEDIA_VIEWER_BLACK_BACKGROUND.get() ? BLACK : original;
     }
 
     /**
@@ -52,7 +46,7 @@ public final class MediaViewerBlackBackgroundPatch {
      * @return Background color of the video player, as a Compose color.
      */
     public static long getVideoPlayerBackgroundColor(long original, Object context) {
-        if (!MEDIA_VIEWER_BLACK_BACKGROUND.get()) {
+        if (!Settings.MEDIA_VIEWER_BLACK_BACKGROUND.get()) {
             return original;
         }
 

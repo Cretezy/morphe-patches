@@ -9,10 +9,10 @@ package app.morphe.patches.reddit.layout.mediaviewer
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.reddit.misc.settings.settingsPatch
+import app.morphe.patches.reddit.misc.version.is_2026_38_0_or_greater
+import app.morphe.patches.reddit.misc.version.versionCheckPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.findFreeRegister
 import app.morphe.util.findInstructionIndicesReversedOrThrow
@@ -21,6 +21,7 @@ import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import java.util.logging.Logger
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/HideMediaViewerOverlayPatch;"
@@ -29,26 +30,20 @@ private const val EXTENSION_CLASS =
 val hideMediaViewerOverlayPatch = bytecodePatch(
     name = "Hide media viewer overlay",
     description = "Adds an option to hide the title, buttons and video controls when opening an image or video. " +
-            "Tap the media to show them."
+            "Tap the media to show them. This patch works with Reddit 2026.38.0 and newer."
 ) {
-    // Older versions hide the overlay from the video player instead of the chrome state.
-    compatibleWith(
-        with(COMPATIBILITY_REDDIT) {
-            Compatibility(
-                name = name!!,
-                packageName = packageName!!,
-                description = description,
-                apkFileType = apkFileType,
-                appIconColor = appIconColor,
-                signatures = signatures,
-                targets = targets.filter { it.isExperimental }
-            )
-        }
-    )
+    compatibleWith(COMPATIBILITY_REDDIT)
 
-    dependsOn(settingsPatch)
+    dependsOn(settingsPatch, versionCheckPatch)
 
     execute {
+        // Older versions hide the overlay from the video player instead of the chrome state.
+        if (!is_2026_38_0_or_greater) {
+            return@execute Logger.getLogger(this::class.java.name).warning(
+                "'Hide media viewer overlay' does not work with Reddit before 2026.38.0"
+            )
+        }
+
         // The chrome state 'isVisible' field is toggled when tapping the media.
         val visibleField = FullBleedChromeStateToStringFingerprint.instructionMatches.last()
             .getFieldAccessed().apply {
@@ -60,22 +55,22 @@ val hideMediaViewerOverlayPatch = bytecodePatch(
         createFullBleedChromeStateFingerprint(
             FullBleedChromeStateToStringFingerprint.classDef.type
         ).method.apply {
-            findInstructionIndicesReversedOrThrow(Opcode.RETURN_OBJECT)
-                .forEach { index ->
-                    val stateRegister = getInstruction<OneRegisterInstruction>(index).registerA
-                    val freeRegister = findFreeRegister(index, stateRegister)
-                    addInstructionsWithLabels(
-                        index,
-                        """
-                            invoke-static { }, $EXTENSION_CLASS->hideOverlay()Z
-                            move-result v$freeRegister
-                            if-eqz v$freeRegister, :show_overlay
-                            const/4 v$freeRegister, 0x0
-                            iput-boolean v$freeRegister, v$stateRegister, $visibleField
-                        """,
-                        ExternalLabel("show_overlay", getInstruction(index))
-                    )
-                }
+            findInstructionIndicesReversedOrThrow(Opcode.RETURN_OBJECT).forEach { index ->
+                val stateRegister = getInstruction<OneRegisterInstruction>(index).registerA
+                val freeRegister = findFreeRegister(index, stateRegister)
+                addInstructionsWithLabels(
+                    index,
+                    """
+                        invoke-static { }, $EXTENSION_CLASS->hideOverlay()Z
+                        move-result v$freeRegister
+                        if-eqz v$freeRegister, :show_overlay
+                        const/4 v$freeRegister, 0x0
+                        iput-boolean v$freeRegister, v$stateRegister, $visibleField
+                        :show_overlay
+                        nop
+                    """
+                )
+            }
         }
 
         setExtensionIsPatchIncluded(EXTENSION_CLASS)

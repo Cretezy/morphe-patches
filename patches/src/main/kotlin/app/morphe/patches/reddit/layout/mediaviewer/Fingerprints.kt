@@ -8,10 +8,8 @@
 package app.morphe.patches.reddit.layout.mediaviewer
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.InstructionFilter
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
-import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
@@ -19,15 +17,14 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
-import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * Composable of the media viewer (full bleed player) caption, user info and action bar.
  */
 internal object MediaViewerChromeFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
     filters = listOf(
         string("userInfoAndActionBarAlpha")
@@ -84,23 +81,22 @@ internal object JoinConversationDockFingerprint : Fingerprint(
 )
 
 /**
+ * Media viewer bottom controls before 2026.32.0. The "See the conversation" button is drawn
+ * below the video controls when the flag checked right after the controls is set.
+ */
+internal object JoinConversationButtonLegacyFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    filters = listOf(
+        string("bottom_controls"),
+        opcode(Opcode.IF_EQZ, location = MatchAfterWithin(6)),
+        string("joinConversationScrubAlpha", location = MatchAfterWithin(20))
+    )
+)
+
+/**
  * Page of the media viewer pager. Pages are padded for the navigation bar at the bottom,
  * and for the status bar at the top, except images and videos.
  */
-private val modifierPaddingCall = methodCall(
-    parameters = listOf("L"),
-    returnType = "L",
-    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
-)
-
-// The modifier type is obfuscated. Its parameter and return type must be identical.
-private val modifierPaddingFilter = InstructionFilter { method, instruction ->
-    modifierPaddingCall.matches(method, instruction) &&
-            instruction.getReference<MethodReference>()!!.let { reference ->
-                reference.parameterTypes.first().toString() == reference.returnType
-            }
-}
-
 internal object MediaViewerPageFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
@@ -114,8 +110,21 @@ internal object MediaViewerPageFingerprint : Fingerprint(
             name = "orientation",
             location = MatchAfterWithin(6)
         ),
-        modifierPaddingFilter, // Navigation bar padding.
-        modifierPaddingFilter // Status bar padding.
+        // Navigation bar padding.
+        methodCall(
+            parameters = listOf("L"),
+            returnType = "L",
+            opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+        ),
+        // Images and videos skip the status bar padding.
+        opcode(Opcode.IF_NEZ, location = MatchAfterWithin(3)),
+        // Status bar padding.
+        methodCall(
+            parameters = listOf("L"),
+            returnType = "L",
+            opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE),
+            location = MatchAfterImmediately()
+        )
     )
 )
 
@@ -123,24 +132,16 @@ internal object MediaViewerPageFingerprint : Fingerprint(
  * Test tags of the media viewer screen and pagers, each drawn with the theme background color.
  * Video pages don't draw their own background, so the pager color shows around them.
  */
-internal val MEDIA_VIEWER_BACKGROUND_TAGS = setOf(
+internal val MEDIA_VIEWER_BACKGROUND_TAGS = listOf(
     "fbp_screen",
     "fbp_screen_horizontal_pager",
     "fbp_horizontal_pager"
-)
-
-internal val mediaViewerBackgroundTagFilter = anyInstruction(
-    *MEDIA_VIEWER_BACKGROUND_TAGS.map { string(it) }.toTypedArray()
 )
 
 // Modifier.background(color, shape).
 internal val mediaViewerBackgroundCallFilter = methodCall(
     parameters = listOf("L", "J", "L"),
     opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
-)
-
-internal object MediaViewerBackgroundFingerprint : Fingerprint(
-    filters = listOf(mediaViewerBackgroundTagFilter)
 )
 
 /**
@@ -156,7 +157,7 @@ internal object MediaViewerBottomSheetMenuFingerprint : Fingerprint(
 )
 
 /**
- * Top fade of a media viewer page, a gradient from the theme background color.
+ * Top fade of a media viewer page, a gradient from the theme background color. Since 2026.26.0.
  */
 internal object MediaViewerTopGradientFingerprint : Fingerprint(
     definingClass = "Lcom/reddit/fullbleedplayer/ui/composables/a;",
@@ -172,7 +173,7 @@ internal object MediaViewerTopGradientFingerprint : Fingerprint(
 
 /**
  * Video player shared by the feed and the media viewer.
- * Its background is black, or the theme background color with some experiments.
+ * Its background is black, or the theme background color with some experiments since 2026.20.0.
  */
 internal object VideoPlayerBackgroundFingerprint : Fingerprint(
     returnType = "V",
@@ -210,20 +211,22 @@ internal object LocalContextFingerprint : Fingerprint(
 )
 
 /**
- * The fade brush is built from an array of (position, color) pairs. The remaining
- * parameters vary between versions, so only the first parameter is constrained.
+ * Media viewer chrome before 2026.38.0. Right after building the fade gradient from an array of
+ * (position, color) pairs, Reddit can swap in a darker static gradient.
  */
-private val staticMethodCall = methodCall(
-    opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
-)
-
-internal object MediaViewerFadeGradientFingerprint : Fingerprint(
+internal object MediaViewerChromeLegacyFingerprint : Fingerprint(
+    returnType = "V",
     filters = listOf(
-        InstructionFilter { method, instruction ->
-            staticMethodCall.matches(method, instruction) &&
-                    instruction.getReference<MethodReference>()!!.parameterTypes
-                        .firstOrNull()?.toString() == "[Lkotlin/Pair;"
-        }
+        methodCall(
+            parameters = listOf("[Lkotlin/Pair;", "I"),
+            returnType = "L",
+            opcodes = listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
+        ),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
+        // The darker gradient.
+        fieldAccess(opcode = Opcode.SGET_OBJECT, location = MatchAfterImmediately()),
+        string("userInfoAndActionBarAlpha")
     )
 )
 

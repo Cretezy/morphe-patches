@@ -38,7 +38,8 @@ internal object FeedStateToStringFingerprint : Fingerprint(
 /**
  * Setter of the "last visited post id provider", which wraps the opened post id and stores it.
  */
-internal fun rememberOpenedPostFingerprint(postIdType: String, feedStateType: String) = Fingerprint(
+internal fun rememberOpenedPostFingerprint(postIdType: String) = Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("Ljava/lang/String;"),
     filters = listOf(
@@ -48,10 +49,5 @@ internal fun rememberOpenedPostFingerprint(postIdType: String, feedStateType: St
             definingClass = "this",
             type = postIdType
         )
-    ),
-    // The feed state itself also holds the id, but does not create it.
-    // Fingerprint access flags are exact; they cannot exclude STATIC while allowing other flags.
-    custom = { method, classDef ->
-        !AccessFlags.STATIC.isSet(method.accessFlags) && classDef.type != feedStateType
-    }
+    )
 )

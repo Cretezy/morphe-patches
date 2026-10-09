@@ -35,22 +35,17 @@ val keepFeedPositionPatch = bytecodePatch(
         val postIdType = FeedStateToStringFingerprint.instructionMatches
             .last().getFieldAccessed().type
 
-        rememberOpenedPostFingerprint(
-            postIdType,
-            FeedStateToStringFingerprint.classDef.type
-        ).matchAll().forEach { match ->
-            match.method.addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static { }, $EXTENSION_CLASS->skipRememberOpenedPost()Z
-                    move-result v0
-                    if-eqz v0, :remember_opened_post
-                    return-void
-                    :remember_opened_post
-                    nop
-                """
-            )
-        }
+        rememberOpenedPostFingerprint(postIdType).method.addInstructionsWithLabels(
+            0,
+            """
+                invoke-static { }, $EXTENSION_CLASS->skipRememberOpenedPost()Z
+                move-result v0
+                if-eqz v0, :remember_opened_post
+                return-void
+                :remember_opened_post
+                nop
+            """
+        )
 
         setExtensionIsPatchIncluded(EXTENSION_CLASS)
     }

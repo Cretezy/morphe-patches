@@ -7,16 +7,10 @@
 
 package app.morphe.extension.reddit.patches;
 
-import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.reddit.settings.Settings;
 
 @SuppressWarnings("unused")
 public final class HideJoinConversationButtonPatch {
-
-    /**
-     * Declared here instead of in the shared Settings class, so the patch still works when
-     * combined with another patch bundle whose copy of Settings is used instead of this one.
-     */
-    public static final BooleanSetting HIDE_JOIN_CONVERSATION_BUTTON = new BooleanSetting("morphe_hide_join_conversation_button", false);
 
     /**
      * @return If this patch was included during patching.
@@ -28,10 +22,11 @@ public final class HideJoinConversationButtonPatch {
     /**
      * Injection point.
      *
-     * @return If the media viewer shows the dock with the "See the conversation" button below the media.
+     * @return If the media viewer shows the "See the conversation" button. Newer versions show it
+     *         in a dock below the media.
      */
-    public static boolean showDock(boolean original) {
-        return original && !HIDE_JOIN_CONVERSATION_BUTTON.get();
+    public static boolean showJoinConversationButton(boolean original) {
+        return original && !Settings.HIDE_JOIN_CONVERSATION_BUTTON.get();
     }
 
     /**
@@ -41,6 +36,6 @@ public final class HideJoinConversationButtonPatch {
      *         but without the dock they would then be centered too high.
      */
     public static boolean skipStatusBarPadding(boolean original) {
-        return original && !HIDE_JOIN_CONVERSATION_BUTTON.get();
+        return original && !Settings.HIDE_JOIN_CONVERSATION_BUTTON.get();
     }
 }

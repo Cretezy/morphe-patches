@@ -13,12 +13,16 @@ import android.content.Context;
 import android.text.InputType;
 
 import app.morphe.extension.shared.ResourceUtils;
-import app.morphe.extension.shared.settings.IntegerSetting;
+import app.morphe.extension.shared.settings.FloatSetting;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.preference.ResettableEditTextPreference;
 
+/**
+ * Text field for an integer or a float setting.
+ */
 @SuppressWarnings({"deprecation", "unused"})
-public class IntegerSettingPreference extends ResettableEditTextPreference {
-    public IntegerSettingPreference(Context context, IntegerSetting setting) {
+public class NumberSettingPreference extends ResettableEditTextPreference {
+    public NumberSettingPreference(Context context, Setting<? extends Number> setting) {
         super(context);
         setTitle(str(setting.key + "_title"));
 
@@ -30,6 +34,10 @@ public class IntegerSettingPreference extends ResettableEditTextPreference {
         setKey(setting.key);
         setSetting(setting);
         setText(String.valueOf(setting.get()));
-        getEditText().setInputType(InputType.TYPE_CLASS_NUMBER);
+        int inputType = InputType.TYPE_CLASS_NUMBER;
+        if (setting instanceof FloatSetting) {
+            inputType |= InputType.TYPE_NUMBER_FLAG_DECIMAL;
+        }
+        getEditText().setInputType(inputType);
     }
 }

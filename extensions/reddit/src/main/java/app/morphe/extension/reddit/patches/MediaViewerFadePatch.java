@@ -7,20 +7,15 @@
 
 package app.morphe.extension.reddit.patches;
 
-import app.morphe.extension.shared.Logger;
-import app.morphe.extension.shared.settings.IntegerSetting;
+import app.morphe.extension.reddit.settings.Settings;
 
 @SuppressWarnings("unused")
 public final class MediaViewerFadePatch {
 
     /**
-     * Strength of the dark fade behind the caption and buttons in the media viewer, in percent.
-     * 0 removes it, 100 is Reddit's default.
-     * <p>
-     * Declared here instead of in the shared Settings class, so the patch still works when
-     * combined with another patch bundle whose copy of Settings is used instead of this one.
+     * Reddit's default fade strength.
      */
-    public static final IntegerSetting MEDIA_VIEWER_FADE = new IntegerSetting("morphe_media_viewer_fade", 100);
+    private static final float DEFAULT_STRENGTH = 1f;
 
     /**
      * @return If this patch was included during patching.
@@ -29,11 +24,12 @@ public final class MediaViewerFadePatch {
         return false;  // Modified during patching.
     }
 
+    private static boolean isDefaultStrength() {
+        return Settings.MEDIA_VIEWER_FADE.get() >= DEFAULT_STRENGTH;
+    }
+
     private static float getStrength() {
-        int percent = MEDIA_VIEWER_FADE.get();
-        if (percent <= 0) return 0f;
-        if (percent >= 100) return 1f;
-        return percent / 100f;
+        return Math.max(0f, Math.min(Settings.MEDIA_VIEWER_FADE.get(), DEFAULT_STRENGTH));
     }
 
     /**
@@ -52,7 +48,7 @@ public final class MediaViewerFadePatch {
      * the fade is left at Reddit's default strength.
      */
     public static boolean useAlternateFade() {
-        return MEDIA_VIEWER_FADE.get() >= 100;
+        return isDefaultStrength();
     }
 
     /**
@@ -61,15 +57,7 @@ public final class MediaViewerFadePatch {
      * Newer versions choose between several fade styles. Only the legacy gradient can be
      * lowered, so use it when the fade is changed from Reddit's default.
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Enum<?> getScrimStyle(Enum<?> style) {
-        if (style == null || MEDIA_VIEWER_FADE.get() >= 100) return style;
-
-        try {
-            return Enum.valueOf((Class) style.getDeclaringClass(), "LEGACY_GRADIENT");
-        } catch (Exception ex) {
-            Logger.printException(() -> "getScrimStyle failure", ex);
-            return style;
-        }
+    public static boolean useLegacyFadeStyle() {
+        return !isDefaultStrength();
     }
 }

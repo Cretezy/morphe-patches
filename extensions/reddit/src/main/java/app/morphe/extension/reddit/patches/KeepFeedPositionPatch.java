@@ -7,16 +7,10 @@
 
 package app.morphe.extension.reddit.patches;
 
-import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.reddit.settings.Settings;
 
 @SuppressWarnings("unused")
 public final class KeepFeedPositionPatch {
-
-    /**
-     * Declared here instead of in the shared Settings class, so the patch still works when
-     * combined with another patch bundle whose copy of Settings is used instead of this one.
-     */
-    public static final BooleanSetting KEEP_FEED_POSITION = new BooleanSetting("morphe_keep_feed_position", true);
 
     /**
      * @return If this patch was included during patching.
@@ -34,6 +28,6 @@ public final class KeepFeedPositionPatch {
      * @return True to not remember the opened post, so the feed keeps its scroll position.
      */
     public static boolean skipRememberOpenedPost() {
-        return KEEP_FEED_POSITION.get();
+        return Settings.KEEP_FEED_POSITION.get();
     }
 }

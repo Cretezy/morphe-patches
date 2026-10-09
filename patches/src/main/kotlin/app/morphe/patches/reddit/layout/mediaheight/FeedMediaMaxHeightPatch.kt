@@ -19,12 +19,15 @@ import app.morphe.patches.reddit.layout.fullwidth.FeedImageMaxHeightFingerprint
 import app.morphe.patches.reddit.layout.fullwidth.FeedImageSizeFingerprint
 import app.morphe.patches.reddit.layout.fullwidth.FeedVideoHeightFingerprint
 import app.morphe.patches.reddit.misc.settings.settingsPatch
+import app.morphe.patches.reddit.misc.version.is_2026_24_0_or_greater
+import app.morphe.patches.reddit.misc.version.versionCheckPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.findInstructionIndicesReversed
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import java.util.logging.Logger
 
 private const val EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/FeedMediaMaxHeightPatch;"
@@ -74,12 +77,17 @@ val feedMediaMaxHeightPatch = bytecodePatch(
     name = "Feed media max height",
     description = "Adds an option to change the maximum height of images, videos and galleries in the feed."
 ) {
-    // Does not match versions before 2026.24.0.
-    compatibleWith(COMPATIBILITY_REDDIT.excluding("2026.10.0", "2026.14.0"))
+    compatibleWith(COMPATIBILITY_REDDIT)
 
-    dependsOn(settingsPatch)
+    dependsOn(settingsPatch, versionCheckPatch)
 
     execute {
+        if (!is_2026_24_0_or_greater) {
+            return@execute Logger.getLogger(this::class.java.name).warning(
+                "'Feed media max height' requires Reddit 2026.24.0+"
+            )
+        }
+
         // Media is cropped to at most 4:3 (height to width) of the media width.
         listOf(
             FeedImageMaxHeightFingerprint,
