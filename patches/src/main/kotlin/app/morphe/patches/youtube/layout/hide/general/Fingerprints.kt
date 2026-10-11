@@ -175,6 +175,16 @@ internal object LiveChatDonatorsBarFingerprint : Fingerprint(
     )
 )
 
+/**
+ * Makes the engagement panels extend behind the navigation bar, which hides the bottom
+ * of the panels that do not add the bottom padding themselves, such as the live chat.
+ */
+internal object EngagementPanelEdgeToEdgeFeatureFlagFingerprint : Fingerprint(
+    filters = listOf(
+        literal(45744676)
+    )
+)
+
 internal object FilterBarHeightFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
     filters = listOf(
@@ -256,9 +266,21 @@ internal object ShowFloatingMicrophoneButtonFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "V",
     parameters = listOf("Landroid/view/View;", "Lcom/google/android/libraries/quantum/fab/FloatingActionButton;", "Landroid/view/ViewStub;"),
-    filters = listOf(
-        opcode(Opcode.IGET_BOOLEAN)
-    )
+    filters = opcodesToFilters(Opcode.IGET_BOOLEAN)
+)
+
+/**
+ * 21.25+
+ *
+ * Same as [ShowFloatingMicrophoneButtonFingerprint], but the button is inflated later from a ViewStub.
+ * Used instead of [ShowFloatingMicrophoneButtonFingerprint] with some server layout experiments.
+ */
+internal object ShowFloatingMicrophoneButtonStubFingerprint : Fingerprint(
+    classFingerprint = ShowFloatingMicrophoneButtonParentFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Landroid/view/View;", "Landroid/view/ViewStub;", "Landroid/view/ViewStub;"),
+    filters = opcodesToFilters(Opcode.IGET_BOOLEAN)
 )
 
 /**

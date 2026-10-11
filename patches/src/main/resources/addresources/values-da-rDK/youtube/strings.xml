@@ -63,7 +63,6 @@ Nogle server-side layouts kan ikke vende tilbage.
   <string name="morphe_hide_album_cards_summary">Skjuler albumkortene under kunstnerbeskrivelsen</string>
   <string name="morphe_hide_artist_cards_title">Skjul kunstnerkort</string>
   <string name="morphe_hide_artist_cards_summary">Skjuler kunstnerkortet øverst i søgeresultaterne</string>
-  <string name="morphe_hide_auto_dubbed_label_title">Skjul labelen \'Automatisk dubbing\'</string>
   <string name="morphe_hide_channel_buttons_title">Skjul kanalknapper</string>
   <string name="morphe_hide_channel_buttons_summary">Skjuler knapper såsom Abonner, Vis kanal, Fællesskab og YouTube Music fra kanalprofiler i søgeresultater</string>
   <string name="morphe_hide_community_posts_title">Skjul fællesskabsopslag</string>
@@ -79,7 +78,6 @@ Nogle server-side layouts kan ikke vende tilbage.
   <string name="morphe_hide_history_shelf_title">Skjul historiksektionen</string>
   <string name="morphe_hide_horizontal_shelves_title">Skjul vandrette hylder</string>
   <string name="morphe_hide_horizontal_shelves_summary">Skjuler vandrette hylder som f.eks. Breaking news, Community-opslag du måske vil lide, Fortsæt med at se, Udforsk flere kanaler, Udforsk flere emner, Til dig, Seneste videoer, Mest relevante, Opslag fra Creator\'s Community, Shopping og Se det igen</string>
-  <string name="morphe_hide_hyped_label_title">Skjul \'Hyped\' label</string>
   <string name="morphe_hide_image_shelf_title">Skjul billedhylde</string>
   <string name="morphe_hide_image_shelf_summary">Skjuler billedhylder i søgeresultater</string>
   <!-- 'Invite others to message' should be translated using the same localized wording YouTube displays
@@ -121,9 +119,9 @@ Nogle server-side layouts kan ikke vende tilbage.
 • Shorts hylder, kanalsider og søgeresultater kan stadig vise uploadtider
 • Denne funktion virker ikke med bilformat"</string>
   <string name="morphe_hide_video_thumbnail_title">Skjul videominiaturebillede</string>
-  <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
-  <string name="morphe_hide_video_recommendation_labels_title">Skjul videoforslagstekster</string>
-  <string name="morphe_hide_video_recommendation_labels_summary">Skjuler \'Folk så også\' og \'Du kan også synes om\'-etiketter i søgeresultater</string>
+  <!-- 'Auto-dubbed', 'Earns commission', 'Hyped', 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
+  <string name="morphe_hide_video_labels_title">Skjul videomærkater</string>
+  <string name="morphe_hide_video_labels_summary">Skjuler mærkater som \'Automatisk dubbet\' / \'Dubbet\', \'Tjener provision\', \'Hyped\', \'Folk så også\', \'produkt(er)\' og \'Du vil måske også kunne lide\'</string>
   <string name="morphe_hide_view_count_title">Skjul antal visninger</string>
   <!-- Translations should match the language used in 'morphe_hide_upload_time_summary'. -->
   <string name="morphe_hide_view_count_summary">"Begrænsninger:
@@ -170,7 +168,9 @@ Nogle server-side layouts kan ikke vende tilbage.
   <string name="morphe_hide_video_title_title">Skjul videotitel</string>
   <string name="morphe_hide_video_title_summary">Skjuler videotitlen i fuldskærmstilstand</string>
   <string name="morphe_sanitize_video_subtitle_title">Rens video undertekst</string>
-  <string name="morphe_sanitize_video_subtitle_summary">Renser udtryk som \'#\', \'Indsamling\', \'Butik\' og \'produkter\' fra video underteksten</string>
+  <string name="morphe_sanitize_video_subtitle_summary">Fjerner udtryk som \'#\', \'Fundraiser\', \'produkt(er)\' og \'Shop\' fra videoens undertekster</string>
+  <string name="morphe_hide_ask_gemini_button_title">Skjul \'Spørg Gemini\'-knappen</string>
+  <string name="morphe_hide_ask_gemini_button_summary">Skjuler \'Spørg Gemini\'-knappen nederst på panelet \'Spørg om denne video\'</string>
   <string name="morphe_hide_description_components_screen_title">Videobeskrivelse</string>
   <string name="morphe_hide_description_components_screen_summary">Vælg hvilke komponenter der vises i videobeskrivelsen</string>
   <string name="morphe_hide_ai_generated_video_summary_section_title">Skjul sektionen \"AI-genereret videooversigt\"</string>
@@ -329,7 +329,6 @@ Begrænsninger:
   <string name="morphe_hide_stats_hidden_all_title">Videoer skjult, altid</string>
   <string name="morphe_hide_stats_hidden_24h_reset_title">Nulstil tæller for sidste 24 timer?</string>
   <string name="morphe_hide_stats_hidden_all_reset_title">Nulstil alle tidstællere?</string>
-  <string name="morphe_hide_about_category_title">Om</string>
   <string name="morphe_hide_aislist_screen_title">AI-kanalfilter</string>
   <string name="morphe_hide_aislist_screen_summary">Skjul videoer fra kanaler, der er blevet markeret som AI-genereret indhold af AiSList-fællesskabet</string>
   <string name="morphe_hide_aislist_blocklist_category_title">Blokeringsliste: Høj sikkerhed</string>
@@ -348,9 +347,7 @@ Begrænsninger:
 Begrænsninger:
 • Filtrerede AI Shorts kan vises som et tomt område
 • Nogle AI-videoer kan stadig vises"</string>
-  <string name="morphe_hide_aislist_attribution_summary">"Data leveres af AiSList
-
-Tryk her for at åbne AiSlopList.com og se downloads til andre platforme"</string>
+  <string name="morphe_hide_aislist_attribution_summary">"AiSList er en open source-liste over YouTube-kanaler, der udgiver AI-genereret indhold, vedligeholdt af frivillige. Kanaler rapporteres af brugere og gennemgås, før de tilføjes\n\nListen downloades fra GitHub, og videoer filtreres på din enhed"</string>
   <string name="morphe_aislist_submit_category_title">Rapportér AI-kanaler</string>
   <string name="morphe_aislist_submit_flyout_menu_title">Tilføj et rapportpunkt til videomenuen</string>
   <string name="morphe_aislist_submit_flyout_menu_summary">Tilføj et menupunkt til videomenuen, der rapporterer kanalen for en video til AiSList</string>
@@ -789,6 +786,8 @@ For at løse dette skal du slå 'Spoof video streams' til og ændre 'Standardkli
 For at få adgang til Indstillinger skal du aktivere knappen Indstillinger via Generelt → Værktøjslinje → Vis Indstillinger."</string>
   <string name="morphe_narrow_navigation_buttons_title">Aktiver smalle navigationsknapper</string>
   <string name="morphe_narrow_navigation_buttons_summary">Reducerer den vandrette afstand mellem knapperne</string>
+  <string name="morphe_disable_icon_only_navigation_buttons_title">Deaktiver navigationsknapper uden etiketter</string>
+  <string name="morphe_disable_icon_only_navigation_buttons_summary">Viser navigationsknapperne med etiketter, hvis YouTube sender dem uden etiketter</string>
   <string name="morphe_navigation_bar_animations_title">Aktivér animationer i navigationslinjen</string>
   <string name="morphe_navigation_bar_animations_summary">Animerer overgange, når der skiftes mellem faner</string>
   <string name="morphe_disable_auto_hide_navigation_bar_title">Deaktiver automatisk skjuling af navigationslinjen</string>
@@ -1121,6 +1120,9 @@ Begrænsning: Hvis 'Gendan gammel video-handlingslinje' er slået fra, er 'Flere
   <!-- misc.fix.fixBackToExitGesturePatch -->
   <string name="morphe_back_button_always_exits_feed_title">Tilbageknappen forlader feedet</string>
   <string name="morphe_back_button_always_exits_feed_summary">Tryk på tilbage afslutter altid appen i stedet for at rulle til toppen af feedet</string>
+  <!-- layout.font.forceSystemFontPatch -->
+  <string name="morphe_force_system_font_title">Tving systemskrifttype</string>
+  <string name="morphe_force_system_font_summary">Viser appen med enhedens skrifttype i stedet for YouTube Sans</string>
   <!-- layout.statusbar.hideStatusBarPatch -->
   <string name="morphe_hide_status_bar_title">Skjul statuslinjen</string>
   <string name="morphe_hide_status_bar_summary">Skjuler systemets statuslinje. Stryg ned fra den øverste kant for at vise den et øjeblik</string>
@@ -1169,16 +1171,18 @@ Begrænsning: Hvis 'Gendan gammel video-handlingslinje' er slået fra, er 'Flere
   <string name="morphe_dearrow_titles_search_title">Søgeresultater</string>
   <string name="morphe_dearrow_titles_icon_title">Vis DeArrow-ikon</string>
   <string name="morphe_dearrow_titles_icon_summary">Viser DeArrow-ikonet på crowdsourcede videotitler</string>
+  <string name="morphe_dearrow_casual_mode_title">Casual-tilstand</string>
+  <string name="morphe_dearrow_casual_mode_summary">Viser den originale titel i stedet for DeArrow-titlen, hvis DeArrow-brugere har stemt, at de kan lide den originale titel</string>
+  <string name="morphe_dearrow_casual_mode_min_votes_title">Minimum antal casual-stemmer for at vise den originale titel</string>
+  <string name="morphe_dearrow_casual_mode_min_votes_summary">Antallet af casual-stemmer i en enkelt kategori, såsom sjov eller kreativ, der kræves for at vise den originale titel</string>
   <string name="morphe_dearrow_thumbnails_title">DeArrow-miniaturebilleder</string>
   <string name="morphe_dearrow_thumbnail_options_entry_1">Originale miniaturebilleder</string>
   <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Originale miniaturer</string>
   <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; stillbilleder</string>
   <string name="morphe_dearrow_thumbnail_options_entry_4">Stilbilleder</string>
-  <string name="morphe_dearrow_about_summary">"DeArrow leverer brugergenererede titler og miniaturebilleder til YouTube-videoer. Disse er ofte mere relevante end dem, der leveres af YouTube
+  <string name="morphe_dearrow_about_summary">"DeArrow erstatter clickbait-titler og -miniaturebilleder med crowdsourcede, der er mere præcise og mindre sensationsprægede. Titler skrives og stemmes om af fællesskabet, og miniaturebilleder er rammer taget fra videoen
 
-Hvis funktionen er aktiveret, sendes video-URL'er til API-serveren, og der sendes ingen andre data. Hvis en video ikke har DeArrow-miniaturebilleder, vises originalbilledet eller stillbilleder
-
-Tryk her for at åbne DeArrow.ajay.app"</string>
+Videoer anmodes ved hjælp af et kort præfiks af den hashede video-ID, så serveren ikke kan se præcis, hvilken video du kigger på. Hvis en video ikke har et DeArrow-miniaturebillede, vises originalen eller et stillbillede"</string>
   <string name="morphe_dearrow_connection_toast_title">Vis forbindelsesfejlmeddelelser</string>
   <string name="morphe_dearrow_connection_toast_summary">Viser en notifikation, når DeArrow-serveren er utilgængelig</string>
   <string name="morphe_dearrow_api_url_title">API-endepunkt</string>

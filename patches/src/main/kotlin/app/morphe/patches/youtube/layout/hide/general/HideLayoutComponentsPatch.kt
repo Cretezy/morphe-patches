@@ -34,6 +34,7 @@ import app.morphe.patches.shared.misc.settings.preference.PreferenceScreenPrefer
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.shared.misc.settings.preference.TextPreference
 import app.morphe.patches.shared.misc.settings.preference.noTitleUnsortedPreferenceCategory
+import app.morphe.patches.shared.misc.settings.preference.screenInfoPreferenceCategory
 import app.morphe.patches.shared.misc.spans.addSpanFilter
 import app.morphe.patches.shared.misc.spans.inclusiveSpanPatch
 import app.morphe.patches.shared.misc.textcomponent.hookLithoSpannableString
@@ -52,6 +53,7 @@ import app.morphe.patches.youtube.misc.playservice.is_21_07_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_11_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_20_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_25_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_26_or_greater
 import app.morphe.patches.youtube.misc.playservice.is_21_36_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.proto.elementProtoParserHookPatch
@@ -195,6 +197,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 ),
                 sorting = Sorting.UNSORTED
             ),
+            SwitchPreference("morphe_hide_ask_gemini_button", summary = true),
             SwitchPreference("morphe_hide_channel_bar"),
             SwitchPreference("morphe_hide_channel_watermark"),
             SwitchPreference("morphe_hide_chapters_timeline_button"),
@@ -264,14 +267,12 @@ val hideLayoutComponentsPatch = bytecodePatch(
                         preferences = emptySet(),
                         tag = "app.morphe.extension.youtube.settings.preference.KeywordContentStatsPreferenceCategory"
                     ),
-                    PreferenceCategory(
+                    screenInfoPreferenceCategory(
                         key = "morphe_hide_keyword_content_about_category",
-                        titleKey = "morphe_hide_about_category_title",
-                        sorting = Sorting.UNSORTED,
                         preferences = setOf(
                             NonInteractivePreference(
                                 key = "morphe_hide_keyword_content_about",
-                                titleKey = "morphe_hide_keyword_content_screen_title",
+                                titleKey = null,
                                 tag = "app.morphe.extension.shared.settings.preference.BulletPointPreference"
                             ),
                             NonInteractivePreference(
@@ -315,7 +316,6 @@ val hideLayoutComponentsPatch = bytecodePatch(
             ),
             SwitchPreference("morphe_hide_album_cards", summary = true),
             SwitchPreference("morphe_hide_artist_cards", summary = true),
-            SwitchPreference("morphe_hide_auto_dubbed_label"),
             SwitchPreference("morphe_hide_channel_buttons", summary = true),
             SwitchPreference("morphe_hide_community_posts"),
             SwitchPreference("morphe_hide_compact_banner", summary = true),
@@ -346,7 +346,6 @@ val hideLayoutComponentsPatch = bytecodePatch(
             SwitchPreference("morphe_hide_get_premium_button"),
             SwitchPreference("morphe_hide_history_shelf"),
             SwitchPreference("morphe_hide_horizontal_shelves", summary = true),
-            SwitchPreference("morphe_hide_hyped_label"),
             SwitchPreference("morphe_hide_image_shelf", summary = true),
             SwitchPreference("morphe_hide_handle", summary = true),
             SwitchPreference("morphe_hide_help_feedback_menu", summary = true),
@@ -370,7 +369,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 tag = "app.morphe.extension.shared.settings.preference.BulletPointSwitchPreference"
             ),
             SwitchPreference("morphe_hide_video_thumbnail"),
-            SwitchPreference("morphe_hide_video_recommendation_labels", summary = true),
+            SwitchPreference("morphe_hide_video_labels", summary = true),
             SwitchPreference(
                 "morphe_hide_view_count",
                 summary = true,
@@ -619,11 +618,15 @@ val hideLayoutComponentsPatch = bytecodePatch(
 
         // region hide floating microphone
 
-        val showFloatingMicrophoneButtonFingerprintMatch = if (is_21_11_or_greater)
-            ShowFloatingMicrophoneButtonFingerprint
-        else ShowFloatingMicrophoneButtonLegacyFingerprint
+        val showFloatingMicrophoneButtonFingerprints = mutableListOf(
+            if (is_21_11_or_greater) ShowFloatingMicrophoneButtonFingerprint
+            else ShowFloatingMicrophoneButtonLegacyFingerprint
+        )
+        if (is_21_25_or_greater) {
+            showFloatingMicrophoneButtonFingerprints += ShowFloatingMicrophoneButtonStubFingerprint
+        }
 
-        showFloatingMicrophoneButtonFingerprintMatch.let {
+        showFloatingMicrophoneButtonFingerprints.forEach {
             it.method.apply {
                 val index = it.instructionMatches.last().index
                 val register = getInstruction<TwoRegisterInstruction>(index).registerA
@@ -1116,6 +1119,23 @@ val hideLayoutComponentsPatch = bytecodePatch(
                 COMMENTS_FILTER,
                 "hideLiveChatThanksButton"
             )
+        }
+
+        // endregion
+
+        // region fix live chat text field behind the navigation bar
+
+        // https://github.com/MorpheApp/morphe-patches/issues/3453
+        // The flag is read by different layouts, and each must use the same value,
+        // otherwise other panels such as the comments show the bottom padding twice.
+        // Flag was removed in 21.26+.
+        if (is_21_11_or_greater && !is_21_26_or_greater) {
+            EngagementPanelEdgeToEdgeFeatureFlagFingerprint.matchAll().forEach {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index,
+                    false
+                )
+            }
         }
 
         // endregion

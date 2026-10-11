@@ -175,6 +175,9 @@ Mentre questa opzione è attiva, la scheda Download elenca questi brani invece d
   <string name="morphe_settings_music_screen_4_player_title">Lettore</string>
   <string name="morphe_settings_music_screen_5_lyrics_title">Testi</string>
   <string name="morphe_settings_music_screen_9_misc_title">Varie</string>
+  <string name="morphe_music_app_language_title">Lingua di YouTube Music</string>
+  <string name="morphe_music_app_language_summary_default">Lingua di sistema</string>
+  <string name="morphe_music_app_language_summary_unsupported">Richiede Android 13 o versioni successive</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Nascondi l\'etichetta \'Ottieni Music Premium\'</string>
   <string name="morphe_music_hide_music_premium_promotions_title">Nascondi le promozioni di Music Premium</string>
@@ -240,32 +243,26 @@ Mentre questa opzione è attiva, la scheda Download elenca questi brani invece d
   <string name="morphe_music_crossfade_paused_toast">Dissolvenza incrociata in pausa per questa sessione</string>
   <string name="morphe_music_crossfade_resumed_toast">Dissolvenza incrociata ripresa</string>
   <string name="morphe_music_crossfade_video_mode_disabled_toast">La modalità video non è disponibile quando la dissolvenza incrociata è abilitata</string>
-  <string name="morphe_music_crossfade_cast_unstable_toast">Il crossfade è in pausa durante il casting o la condivisione dell\'audio. Il crossfade con il casting/la condivisione è instabile e potrebbe non essere mai risolvibile.</string>
-  <string name="morphe_music_crossfade_about_title">A proposito di</string>
-  <string name="morphe_music_crossfade_about_summary">Come funziona il crossfade e quando non funziona</string>
-  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="morphe_music_crossfade_sabr_toast">Il crossfade è disattivato con la riproduzione SABR</string>
+  <string name="morphe_music_crossfade_cast_unstable_toast">Il crossfade è disattivato durante il casting</string>
   <string name="morphe_music_crossfade_about_how_title">Come funziona</string>
-  <string name="morphe_music_crossfade_about_how_summary">"Il crossfade sovrappone la fine di una canzone all'inizio della successiva, attenuando gradualmente il volume di una canzone mentre il volume dell'altra aumenta, in base alla durata e alla curva scelte.
+  <string name="morphe_music_crossfade_about_how_summary">"Crossfade sovrappone la fine di una canzone con l'inizio della successiva, usando la durata e la curva impostate
 
-Funziona con l'avanzamento automatico (quando una canzone termina da sola) e con la riproduzione manuale: ognuno ha un interruttore dedicato sopra. Con l'avanzamento automatico, la transizione inizia pochi secondi prima della fine della canzone.
+Funziona con avanzamento automatico e con salto manuale, ciascuno con il proprio interruttore. Con l'avanzamento automatico, la dissolvenza inizia pochi secondi prima della fine della canzone"</string>
+  <string name="morphe_music_crossfade_about_quirks_title">Limitazioni</string>
+  <string name="morphe_music_crossfade_about_quirks_summary">"I video musicali vengono riprodotti solo come audio mentre il crossfade è attivo. Tieni premuto il pulsante di riproduzione casuale per mettere in pausa il crossfade e guardare il video
 
-Richiede YouTube Music 9.x o versioni successive."</string>
-  <string name="morphe_music_crossfade_about_best_title">Funziona meglio con</string>
-  <string name="morphe_music_crossfade_about_best_summary">La riproduzione normale da canzone a canzone e l\'avanzamento automatico, la ripetizione di una canzone (la canzone si dissolve in sé stessa) e l\'audio locale: altoparlante del telefono, cuffie cablate, Bluetooth o USB.</string>
-  <string name="morphe_music_crossfade_about_quirks_title">Non funziona perfettamente</string>
-  <string name="morphe_music_crossfade_about_quirks_summary">"I video musicali vengono riprodotti solo con l'audio quando il crossfade è attivo (tieni premuto shuffle per mettere in pausa se vuoi vedere il video)
+Un video musicale che viene avviato rimane in modalità video fino alla canzone successiva
 
-Le canzoni più brevi della durata del fade potrebbero saltare il fade
+Le canzoni più brevi della durata del crossfade non vengono mescolate
 
-La schermata di blocco o la notifica potrebbero mostrare brevemente uno stato obsoleto durante la transizione"</string>
-  <string name="morphe_music_crossfade_about_known_title">Problemi noti</string>
-  <string name="morphe_music_crossfade_about_known_summary">"Un video musicale impostato come prima canzone, o uno avviato al di fuori della coda corrente, potrebbe apparire brevemente come video prima che si attivi la modalità solo audio.
+La schermata di blocco o la notifica può mostrare brevemente uno stato non aggiornato a metà transizione
 
-Mettere in pausa il crossfade per guardare un video musicale potrebbe lasciare alcuni video neri (quelli il cui audio proviene dal video stesso). Mettere in pausa il crossfade prima di selezionare la canzone lo evita."</string>
-  <string name="morphe_music_crossfade_about_unsupported_title">Non funziona affatto</string>
-  <string name="morphe_music_crossfade_about_unsupported_summary">"Trasmissione o mirroring dell'audio (Chromecast, mirroring dello schermo o dell'audio): il crossfade si mette in pausa perché è instabile e potrebbe non essere risolvibile.
+Mettere in pausa il crossfade per guardare un video musicale può lasciare neri alcuni video. Mettere in pausa il crossfade prima di scegliere la canzone evita il problema"</string>
+  <string name="morphe_music_crossfade_about_unsupported_title">Non supportato</string>
+  <string name="morphe_music_crossfade_about_unsupported_summary">"Casting o mirroring dell'audio (Chromecast, mirroring dello schermo o dell'audio)
 
-YouTube Music 8.x: il crossfade funziona solo su 9.x e versioni successive"</string>
+Riproduzione SABR (simulazione dei flussi video disattivata)"</string>
   <string name="morphe_music_crossfade_about_credit_title">Crediti</string>
   <string name="morphe_music_crossfade_about_credit_summary">Funzione crossfade di VazerOG</string>
   <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
@@ -451,8 +448,6 @@ YouTube Music 8.x: il crossfade funziona solo su 9.x e versioni successive"</str
   <string name="morphe_music_scrobbling_guess_album_title">Compila l\'album mancante</string>
   <string name="morphe_music_scrobbling_guess_album_summary">Quando la musica non include un album, cercalo su Last.fm così il tuo scrobble è completo</string>
   <!-- 'scrobbling' must be kept untranslated -->
-  <string name="morphe_music_scrobbling_about_title">Informazioni sullo scrobbling</string>
-  <!-- 'scrobbling' must be kept untranslated -->
   <string name="morphe_music_scrobbling_about_summary">"Lo scrobbling sincronizza automaticamente il tuo utilizzo di YouTube Music con il tuo profilo Last.fm o ListenBrainz
 
 Per garantire che lo scrobbling sia sincronizzato durante la riproduzione in background, assicurati che l'utilizzo della batteria dell'app YouTube Music sia impostato su \"Illimitato\""</string>
@@ -464,7 +459,6 @@ Per garantire che lo scrobbling sia sincronizzato durante la riproduzione in bac
   <string name="morphe_music_lyrics_section_service_title">Servizio di testi</string>
   <string name="morphe_music_lyrics_section_overlay_title">Sovrapposizione</string>
   <string name="morphe_music_lyrics_section_sync_title">Sincronizzazione</string>
-  <string name="morphe_music_lyrics_section_about_title">A proposito di</string>
   <string name="morphe_music_lyrics_source_all_disabled">Tutti i provider disabilitati — testi integrati e testi incorporati</string>
   <string name="morphe_music_lyrics_source_reset_title">Reimpostare l\'ordine dei provider?</string>
   <string name="morphe_music_lyrics_source_reset_message">Ripristina i provider all\'ordine di priorità predefinito</string>

@@ -27,6 +27,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.patches.LithoRelayoutPatch;
 import app.morphe.extension.shared.requests.Requester;
 import app.morphe.extension.youtube.patches.dearrow.DeArrowBrandingRequest;
+import app.morphe.extension.youtube.patches.dearrow.DeArrowBrandingRequest.DeArrowTitle;
 import app.morphe.extension.youtube.patches.dearrow.DeArrowPatch;
 import app.morphe.extension.youtube.patches.dearrow.DeArrowPatch.DeArrowTitlesAvailability;
 import app.morphe.extension.youtube.patches.utils.requests.ChannelIdRoutes;
@@ -39,6 +40,8 @@ import app.morphe.extension.youtube.patches.utils.requests.ChannelIdRoutes;
  * whose embedding is disabled, are fetched from the player endpoint without an account.
  * DeArrow titles are fetched with {@link DeArrowBrandingRequest}, and if DeArrow has no title
  * then the original title is used if original titles are restored.
+ * Casual mode of DeArrow also needs the original title, to check if the casual votes are for
+ * the current original title.
  * <p>
  * DeArrow titles can be used only for some navigations, such as only for the search results,
  * so the title that replaces the title is chosen when the title is shown.
@@ -129,7 +132,59 @@ final class OriginalTitleRequest {
             Long retryTime = retryTimes.get(videoId);
             if (future == null || (retryTime != null && System.currentTimeMillis() >= retryTime)) {
                 retryTimes.remove(videoId);
-                future = CompletableFuture.supplyAsync(() -> fetchTitles(videoId), Utils::runOnBackgroundThread);
+                Titles fetchedTitles = future != null && future.isDone() && !future.isCompletedExceptionally()
+                        ? future.getNow(null)
+                        : null;
+                // Only the DeArrow title failed to fetch if the original title did not fail,
+                // and was fetched or is not restored. The DeArrow title is fetched again, and the titles
+                // fetched before are kept meanwhile, so the title is not shown as loading again
+                // and the original title is not fetched again.
+                if (fetchedTitles != null && !failedFetchCounts.containsKey(videoId)
+                        && (!RestoreOriginalTitlesPatch.RESTORE_ORIGINAL || fetchedTitles.originalTitle() != null)) {
+                    CompletableFuture<Titles> fetchedFuture = future;
+                    Utils.runOnBackgroundThread(() -> {
+                        try {
+                            DeArrowTitle deArrow = DeArrowBrandingRequest.fetchTitle(videoId);
+                            String originalTitle = fetchedTitles.originalTitle();
+                            if (originalTitle == null && deArrow.needsOriginalTitle()) {
+                                originalTitle = fetchOriginalTitle(videoId);
+                            }
+                            // Not replaced if the titles were fetched again meanwhile.
+                            cache.replace(videoId, fetchedFuture, CompletableFuture.completedFuture(
+                                    new Titles(deArrow.titleFor(originalTitle), fetchedTitles.originalTitle())));
+                        } catch (DeArrowBrandingRequest.DeArrowException ex) {
+                            // The DeArrow title is fetched again later,
+                            // and the titles fetched before are used meanwhile.
+                            retryTimes.put(videoId, System.currentTimeMillis() + FAILED_FETCH_RETRY_MILLISECONDS);
+                        }
+                    });
+                    return future;
+                }
+                future = CompletableFuture.supplyAsync(() -> {
+                    String deArrowTitle = null;
+                    String originalTitle = null;
+                    boolean originalFetched = false;
+                    if (RestoreOriginalTitlesPatch.USE_DEARROW) {
+                        try {
+                            DeArrowTitle deArrow = DeArrowBrandingRequest.fetchTitle(videoId);
+                            if (deArrow.needsOriginalTitle()) {
+                                originalTitle = fetchOriginalTitle(videoId);
+                                originalFetched = true;
+                            }
+                            deArrowTitle = deArrow.titleFor(originalTitle);
+                        } catch (DeArrowBrandingRequest.DeArrowException ex) {
+                            // The DeArrow title is fetched again later, and the original title is used meanwhile.
+                            retryTimes.put(videoId, System.currentTimeMillis() + FAILED_FETCH_RETRY_MILLISECONDS);
+                        }
+                    }
+                    // The original title is not needed if the DeArrow title is used for all navigations.
+                    final boolean fetchOriginal = RestoreOriginalTitlesPatch.RESTORE_ORIGINAL
+                            && (deArrowTitle == null || !DeArrowTitlesAvailability.usingDeArrowTitlesEverywhere());
+                    if (fetchOriginal && !originalFetched) {
+                        originalTitle = fetchOriginalTitle(videoId);
+                    }
+                    return new Titles(deArrowTitle, fetchOriginal ? originalTitle : null);
+                }, Utils::runOnBackgroundThread);
                 cache.put(videoId, future);
             }
             return future;
@@ -193,22 +248,6 @@ final class OriginalTitleRequest {
         if (failedFetchCounts.merge(videoId, 1, Integer::sum) <= MAX_FAILED_FETCH_RETRIES) {
             Utils.runOnMainThreadDelayed(LithoRelayoutPatch::relayoutOutdatedTexts, delay);
         }
-    }
-
-    private static Titles fetchTitles(String videoId) {
-        String deArrowTitle = null;
-        if (RestoreOriginalTitlesPatch.USE_DEARROW) {
-            try {
-                deArrowTitle = DeArrowBrandingRequest.fetchTitle(videoId);
-            } catch (DeArrowBrandingRequest.DeArrowException ex) {
-                // The DeArrow title is fetched again later, and the original title is used meanwhile.
-                retryTimes.put(videoId, System.currentTimeMillis() + FAILED_FETCH_RETRY_MILLISECONDS);
-            }
-        }
-        // The original title is not needed if the DeArrow title is used for all navigations.
-        final boolean fetchOriginal = RestoreOriginalTitlesPatch.RESTORE_ORIGINAL
-                && (deArrowTitle == null || !DeArrowTitlesAvailability.usingDeArrowTitlesEverywhere());
-        return new Titles(deArrowTitle, fetchOriginal ? fetchOriginalTitle(videoId) : null);
     }
 
     @Nullable

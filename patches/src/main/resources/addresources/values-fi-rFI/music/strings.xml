@@ -176,6 +176,9 @@ Ladatut kappaleet näkyvät tässä"</string>
   <string name="morphe_settings_music_screen_4_player_title">Soitin</string>
   <string name="morphe_settings_music_screen_5_lyrics_title">Lyriikat</string>
   <string name="morphe_settings_music_screen_9_misc_title">Sekalaiset</string>
+  <string name="morphe_music_app_language_title">YouTube Music -kieli</string>
+  <string name="morphe_music_app_language_summary_default">Järjestelmän kieli</string>
+  <string name="morphe_music_app_language_summary_unsupported">Vaatii Android 13:n tai uudemman</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Piilota \"Hanki Music Premium\" -tunniste</string>
   <string name="morphe_music_hide_music_premium_promotions_title">Piilota Music Premium -tarjoukset</string>
@@ -241,32 +244,26 @@ Ladatut kappaleet näkyvät tässä"</string>
   <string name="morphe_music_crossfade_paused_toast">Istunnon crossfade-toiminto on tauolla</string>
   <string name="morphe_music_crossfade_resumed_toast">Crossfade-toiminto jatkettu</string>
   <string name="morphe_music_crossfade_video_mode_disabled_toast">Videon toimitila ei ole käytettävissä, kun crossfade on käytössä</string>
-  <string name="morphe_music_crossfade_cast_unstable_toast">Äänenvoimakkuuden säätö on keskeytetty lähetyksen tai peilauksen aikana. Äänenvoimakkuuden säätö lähetyksen/peilauksen aikana on epävakaa, eikä sitä ehkä voida korjata.</string>
-  <string name="morphe_music_crossfade_about_title">Tietoja</string>
-  <string name="morphe_music_crossfade_about_summary">Miten äänenvoimakkuuden säätö toimii – ja milloin se ei toimi</string>
-  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="morphe_music_crossfade_sabr_toast">Crossfade on pois päältä SABR-toiston aikana</string>
+  <string name="morphe_music_crossfade_cast_unstable_toast">Crossfade on pois päältä heiton aikana</string>
   <string name="morphe_music_crossfade_about_how_title">Miten se toimii</string>
-  <string name="morphe_music_crossfade_about_how_summary">"Äänenvoimakkuuden säätö yhdistää yhden kappaleen lopun seuraavan kappaleen alkuun, vaimentamalla toisen samalla kun toinen vahvistuu valitsemasi keston ja käyrän mukaan.
+  <string name="morphe_music_crossfade_about_how_summary">"Crossfade limittyy yhden kappaleen lopun seuraavan alkuun käyttäen kestoasi ja käyrääsi
 
-Se toimii automaattisen toiston (kun kappale päättyy itsestään) ja manuaalisten ohitusten kanssa – molemmille on omat kytkimet yllä. Automaattisessa toistossa yhdistäminen alkaa muutama sekunti ennen kappaleen loppua.
+Se toimii automaattisessa jatkossa ja manuaalisessa ohituksessa, kummallakin on oma kytkin. Automaattisessa jatkossa sekoitus alkaa muutaman sekunnin ennen kappaleen loppua"</string>
+  <string name="morphe_music_crossfade_about_quirks_title">Rajoitukset</string>
+  <string name="morphe_music_crossfade_about_quirks_summary">"Kun crossfade on päällä, musiikkivideot toistetaan vain äänenä. Pidä satunnaistoistoa painettuna keskeyttääksesi crossfaden ja katsoaksesi videon.
 
-Vaatii YouTube Music -version 9.x tai uudemman."</string>
-  <string name="morphe_music_crossfade_about_best_title">Toimii parhaiten</string>
-  <string name="morphe_music_crossfade_about_best_summary">Normaali kappaleesta toiseen -toisto ja automaattinen toisto, toista yksi (kappale yhdistyy itseensä) sekä paikallinen ääni – puhelimen kaiutin, johdolliset kuulokkeet, Bluetooth tai USB.</string>
-  <string name="morphe_music_crossfade_about_quirks_title">Ei toimi aivan oikein</string>
-  <string name="morphe_music_crossfade_about_quirks_summary">"Musiikkivideot toistetaan ääni-vain-tilassa, kun crossfade on päällä (pidä shuffle-painiketta pohjassa pysäyttääksesi videon, jos haluat nähdä sen).
+Musiikkivideo, joka alkaa toistua, pysyy videotilassa seuraavaan kappaleeseen asti.
 
-Lyhyemmät kappaleet kuin haalistusaikasi voivat ohittaa haalistuksen.
+Kappaleita, jotka ovat lyhyempiä kuin häivytyksen kesto, ei ristihäivytetä.
 
-Lukitusnäyttö tai ilmoitus voi hetkellisesti näyttää vanhentuneen tilan siirtymän aikana."</string>
-  <string name="morphe_music_crossfade_about_known_title">Tunnetut ongelmat</string>
-  <string name="morphe_music_crossfade_about_known_summary">"Musiikkivideo, joka on asetettu ensimmäiseksi kappaleeksi – tai joka on aloitettu jonon ulkopuolelta – saattaa hetkellisesti näkyä videon muodossa ennen kuin ääni-vain-tila aktivoituu.
+Lukitusnäyttö tai ilmoitus voi näyttää hetkellisesti vanhentuneen tilan kesken siirtymän.
 
-Crossfaden pysäyttäminen musiikkivideon katselua varten voi jättää osan videoista mustiksi (ne, joiden ääni tulee itse videosta). Vältä tätä pysäyttämällä crossfade ennen kappaleen valintaa."</string>
-  <string name="morphe_music_crossfade_about_unsupported_title">Ei toimi ollenkaan</string>
-  <string name="morphe_music_crossfade_about_unsupported_summary">"Äänen lähettäminen tai peilaaminen (Chromecast, näytön tai äänen peilaaminen) – crossfade pysähtyy, koska se on epävakaa ja sen korjaaminen ei välttämättä onnistu.
+Crossfaden keskeyttäminen musiikkivideon katsomiseksi voi jättää jotkin videot mustiksi. Crossfaden keskeyttäminen ennen kappaleen valitsemista välttää tämän"</string>
+  <string name="morphe_music_crossfade_about_unsupported_title">Ei tuettu</string>
+  <string name="morphe_music_crossfade_about_unsupported_summary">"Äänen heitto tai peilaus (Chromecast, näytön peilaus tai äänen peilaus)
 
-YouTube Music 8.x – crossfade toimii vain versiossa 9.x ja uudemmissa."</string>
+SABR-toisto (videovirtojen huijaus pois päältä)"</string>
   <string name="morphe_music_crossfade_about_credit_title">Lähde</string>
   <string name="morphe_music_crossfade_about_credit_summary">Crossfade-ominaisuuden on kehittänyt VazerOG</string>
   <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
@@ -452,8 +449,6 @@ YouTube Music 8.x – crossfade toimii vain versiossa 9.x ja uudemmissa."</strin
   <string name="morphe_music_scrobbling_guess_album_title">Täytä puuttuva albumi</string>
   <string name="morphe_music_scrobbling_guess_album_summary">Kun musiikki ei sisällä albumia, hae se Last.fm:stä, jotta scrobble on täydellinen.</string>
   <!-- 'scrobbling' must be kept untranslated -->
-  <string name="morphe_music_scrobbling_about_title">Tietoa toistamisesta</string>
-  <!-- 'scrobbling' must be kept untranslated -->
   <string name="morphe_music_scrobbling_about_summary">"Scrobbling synkronoi YouTube Music -käyttösi automaattisesti Last.fm- tai ListenBrainz-profiiliisi.
 
 Varmistaaksesi, että scrobbling synkronoidaan taustatoiston aikana, varmista, että YouTube Musiikin sovelluksen akun käyttö on asetettu arvoon \"Rajoittamaton\"."</string>
@@ -465,7 +460,6 @@ Varmistaaksesi, että scrobbling synkronoidaan taustatoiston aikana, varmista, e
   <string name="morphe_music_lyrics_section_service_title">Sanoituspalvelu</string>
   <string name="morphe_music_lyrics_section_overlay_title">Päällekkäisnäyttö</string>
   <string name="morphe_music_lyrics_section_sync_title">Synkronointi.</string>
-  <string name="morphe_music_lyrics_section_about_title">Tietoja</string>
   <string name="morphe_music_lyrics_source_all_disabled">Kaikki palveluntarjoajat poistettu käytöstä — sisäänrakennetut ja upotetut sanoitukset.</string>
   <string name="morphe_music_lyrics_source_reset_title">Palautetaanko palveluntarjoajien järjestys?</string>
   <string name="morphe_music_lyrics_source_reset_message">Palauta palveluntarjoajat oletusarvoiseen prioriteettijärjestykseen.</string>

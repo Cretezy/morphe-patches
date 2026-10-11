@@ -85,7 +85,8 @@ private val spoofVideoStreamsResourcePatch = resourcePatch {
 
 internal fun spoofVideoStreamsPatch(
     extensionClass: String,
-    mainActivityOnCreateFingerprint: Fingerprint,
+    mainActivityOnCreateFingerprints: List<Fingerprint>,
+    fixCronetOnesie: BytecodePatchBuilder.() -> Boolean,
     fixMediaFetchHotConfigAlternative: BytecodePatchBuilder.() -> Boolean,
     fixParsePlaybackResponseFeatureFlag: BytecodePatchBuilder.() -> Boolean,
     fixMediaSessionFeatureFlag: BytecodePatchBuilder.() -> Boolean,
@@ -108,12 +109,12 @@ internal fun spoofVideoStreamsPatch(
     )
 
     execute {
-        mainActivityOnCreateFingerprint.method.addInstructions(
-            0,
-            """
-                invoke-static { }, $extensionClass->setClientOrderToUse()V   
-            """
-        )
+        mainActivityOnCreateFingerprints.forEach { fingerprint ->
+            fingerprint.method.addInstruction(
+                0,
+                "invoke-static { }, $extensionClass->setClientOrderToUse()V"
+            )
+        }
 
         // region Enable extension helper method used by other patches
 
@@ -433,11 +434,30 @@ internal fun spoofVideoStreamsPatch(
 
         // region Turn off stream config replacement feature flag.
 
-        MediaFetchHotConfigFingerprint.let {
-            it.method.insertLiteralOverride(
-                it.instructionMatches.first().index,
-                "$EXTENSION_CLASS->useMediaFetchHotConfigReplacement(Z)Z"
-            )
+        if (fixCronetOnesie()) {
+            // The flag was removed and the native player sends the Onesie /initplayback
+            // request itself, which never reaches the Java /initplayback hook.
+            NativeNetFetchFingerprint.let {
+                it.method.apply {
+                    val index = it.instructionMatches.first().index
+                    val urlRegister = getInstruction(index).registersUsed[1]
+
+                    addInstructions(
+                        index,
+                        """
+                            invoke-static/range { v$urlRegister .. v$urlRegister }, $EXTENSION_CLASS->blockInitPlaybackRequest(Ljava/lang/String;)Ljava/lang/String;
+                            move-result-object v$urlRegister
+                        """
+                    )
+                }
+            }
+        } else {
+            MediaFetchHotConfigFingerprint.let {
+                it.method.insertLiteralOverride(
+                    it.instructionMatches.first().index,
+                    "$EXTENSION_CLASS->useMediaFetchHotConfigReplacement(Z)Z"
+                )
+            }
         }
 
         if (fixMediaFetchHotConfigAlternative()) {

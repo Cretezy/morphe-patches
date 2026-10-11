@@ -176,6 +176,9 @@ Nedlastede spor vises her"</string>
   <string name="morphe_settings_music_screen_4_player_title">Spiller</string>
   <string name="morphe_settings_music_screen_5_lyrics_title">Tekster</string>
   <string name="morphe_settings_music_screen_9_misc_title">Diverse</string>
+  <string name="morphe_music_app_language_title">Språk for YouTube Music</string>
+  <string name="morphe_music_app_language_summary_default">Systemspråk</string>
+  <string name="morphe_music_app_language_summary_unsupported">Krever Android 13 eller nyere</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Skjul «Skaff Music Premium»-etikett</string>
   <string name="morphe_music_hide_music_premium_promotions_title">Skjul Music Premium-kampanjer</string>
@@ -241,32 +244,24 @@ Nedlastede spor vises her"</string>
   <string name="morphe_music_crossfade_paused_toast">Overgang pause for denne sesjonen</string>
   <string name="morphe_music_crossfade_resumed_toast">Overgang gjenopptas</string>
   <string name="morphe_music_crossfade_video_mode_disabled_toast">Videomodus er ikke tilgjengelig når overgang er aktivert</string>
-  <string name="morphe_music_crossfade_cast_unstable_toast">Overganger er satt på pause under avspilling eller speiling av lyd. Overganger under avspilling/speiling er ustabile og kan være umulige å fikse.</string>
-  <string name="morphe_music_crossfade_about_title">Sesjonskontroll er deaktivert</string>
-  <string name="morphe_music_crossfade_about_summary">Hvordan overganger fungerer – og når de ikke gjør det</string>
-  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="morphe_music_crossfade_sabr_toast">Crossfade er av ved SABR-avspilling</string>
+  <string name="morphe_music_crossfade_cast_unstable_toast">Crossfade er av under casting</string>
   <string name="morphe_music_crossfade_about_how_title">Hvordan det fungerer</string>
-  <string name="morphe_music_crossfade_about_how_summary">"Overganger overlapper slutten av en sang med starten på den neste, og demper den ene ned mens den andre tones opp over den valgte varigheten og kurven.
+  <string name="morphe_music_crossfade_about_how_summary">"Crossfade overlapper slutten av én sang med starten av den neste, ved å bruke varigheten og kurven\n\nDen kjører på automatisk avspilling og på manuelt hopp, hver med egen bryter. Ved automatisk avspilling starter blandingen noen sekunder før sangen slutter"</string>
+  <string name="morphe_music_crossfade_about_quirks_title">Begrensninger</string>
+  <string name="morphe_music_crossfade_about_quirks_summary">"Musikkvideoer spilles bare som lyd mens crossfade er på. Trykk lenge på shuffle-knappen for å pause crossfade og se videoen.
 
-Det kjøres på auto-avansering (når en sang slutter av seg selv) og på manuelle hopp – hver har sin egen bryter ovenfor. Ved auto-avansering starter overgangen noen sekunder før sangen slutter.
+En musikkvideo som starter avspillingen, forblir i videomodus til neste sang.
 
-Krever YouTube Music 9.x eller nyere."</string>
-  <string name="morphe_music_crossfade_about_best_title">Fungerer best med</string>
-  <string name="morphe_music_crossfade_about_best_summary">Normal sang-til-sang-avspilling og auto-avansering, gjenta én (sangen tones over i seg selv), og lokal lyd – telefonhøyttaler, kablede hodetelefoner, Bluetooth eller USB.</string>
-  <string name="morphe_music_crossfade_about_quirks_title">Fungerer ikke helt som den skal</string>
-  <string name="morphe_music_crossfade_about_quirks_summary">"Musikkvideoer spilles av som lyd-kun mens crossfade er på (trykk lenge på shuffle for å pause hvis du vil ha videoen)
+Sanger som er kortere enn fade-varigheten, blir ikke crossfadet.
 
-Sanger som er kortere enn varigheten på falefunksjonen kan hoppe over falefunksjonen
+Låseskjermen eller varselet kan kort vise en utdatert tilstand midt i en overgang.
 
-Låseskjermen eller varslingsfeltet kan kort vise en utdatert tilstand midt i overgangen"</string>
-  <string name="morphe_music_crossfade_about_known_title">Kjente problemer</string>
-  <string name="morphe_music_crossfade_about_known_summary">"En musikkvideo som er satt som den første sangen – eller en som startes utenfor den gjeldende køen – kan kort vises som video før lyd-kun-modus trer i kraft
+Å pause crossfade for å se en musikkvideo kan føre til at noen videoer forblir svarte. Hvis du pauser crossfade før du velger sangen, unngår du det"</string>
+  <string name="morphe_music_crossfade_about_unsupported_title">Støttes ikke</string>
+  <string name="morphe_music_crossfade_about_unsupported_summary">"Casting eller speiling av lyd (Chromecast, skjerm- eller lydspeiling)
 
-Paus crossfade for å se en musikkvideo kan føre til at noen videoer blir svarte (de der lyden kommer fra selve videoen). Å stanse crossfade før du velger sangen unngår dette"</string>
-  <string name="morphe_music_crossfade_about_unsupported_title">Fungerer ikke i det hele tatt</string>
-  <string name="morphe_music_crossfade_about_unsupported_summary">"Kasting eller speiling av lyd (Chromecast, skjerm- eller lydspeiling) – crossfade pauses fordi det er ustabilt der og kan hende det aldri blir fikset.
-
-YouTube Music 8.x – crossfade kjører bare på 9.x og nyere"</string>
+SABR-avspilling (etterligning av videostrømmer er av)"</string>
   <string name="morphe_music_crossfade_about_credit_title">Credit</string>
   <string name="morphe_music_crossfade_about_credit_summary">Crossfade-funksjon av VazerOG</string>
   <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
@@ -452,8 +447,6 @@ YouTube Music 8.x – crossfade kjører bare på 9.x og nyere"</string>
   <string name="morphe_music_scrobbling_guess_album_title">Fyll inn manglende album</string>
   <string name="morphe_music_scrobbling_guess_album_summary">Når musikken ikke inneholder et album, slå det opp på Last.fm slik at scrobbelen din er komplett</string>
   <!-- 'scrobbling' must be kept untranslated -->
-  <string name="morphe_music_scrobbling_about_title">Om scrobbling</string>
-  <!-- 'scrobbling' must be kept untranslated -->
   <string name="morphe_music_scrobbling_about_summary">"Scrobbling synkroniserer automatisk din YouTube Music-bruk med din Last.fm- eller ListenBrainz-profil.
 
 For å sikre at scrobbling synkroniseres under avspilling i bakgrunnen, må du sørge for at YouTube Music sin app-batteribruk er satt til \"Ubegrenset\"."</string>
@@ -465,7 +458,6 @@ For å sikre at scrobbling synkroniseres under avspilling i bakgrunnen, må du s
   <string name="morphe_music_lyrics_section_service_title">Sangteksttjeneste</string>
   <string name="morphe_music_lyrics_section_overlay_title">Overlegg</string>
   <string name="morphe_music_lyrics_section_sync_title">Synkronisering</string>
-  <string name="morphe_music_lyrics_section_about_title">Om</string>
   <string name="morphe_music_lyrics_source_all_disabled">Alle leverandører deaktivert – innebygde tekster og innebygde tekster</string>
   <string name="morphe_music_lyrics_source_reset_title">Tilbakestill leverandørrekkefølgen?</string>
   <string name="morphe_music_lyrics_source_reset_message">Tilbakestill leverandørene til standard prioritetsrekkefølge</string>

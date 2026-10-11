@@ -63,7 +63,6 @@ Dəyişikliklər ehtiva edir:
   <string name="morphe_hide_album_cards_summary">Albom kartlarını sənətkar təsviri altında gizlədir</string>
   <string name="morphe_hide_artist_cards_title">Sənətkar kartlarını gizlət</string>
   <string name="morphe_hide_artist_cards_summary">Axtarış nəticələri yuxarısında sənətkar kartını gizlədir</string>
-  <string name="morphe_hide_auto_dubbed_label_title">\'Avtomatik dublyaj\' etiketini gizlət</string>
   <string name="morphe_hide_channel_buttons_title">Kanal düymələrini gizlət</string>
   <string name="morphe_hide_channel_buttons_summary">Axtarış nəticələrindəki kanal profillərindən Abunə ol, Kanala Bax, İcma və YouTube Music kimi düymələri gizlədir</string>
   <string name="morphe_hide_community_posts_title">İcma postlarını gizlət</string>
@@ -79,7 +78,6 @@ Dəyişikliklər ehtiva edir:
   <string name="morphe_hide_history_shelf_title">Tarixçə cərgəsini gizlət</string>
   <string name="morphe_hide_horizontal_shelves_title">Üfüqi hissələri gizlət</string>
   <string name="morphe_hide_horizontal_shelves_summary">Son xəbərlər, bəyənə biləcəyiniz icma postları, izləməyə davam edin, daha çox kanal kəşf edin, daha çox mövzu kəşf edin, sizin üçün, ən son videolar, ən uyğun, yaradıcı icmasından postlar, alış-veriş və yenidən izləyin kimi üfüqi cərgələri gizlədir</string>
-  <string name="morphe_hide_hyped_label_title">Hayp edildi etiketin gizlət</string>
   <string name="morphe_hide_image_shelf_title">Şəkil cərgəsin gizlət</string>
   <string name="morphe_hide_image_shelf_summary">Axtarış nəticələrində şəkil cərgələrin gizlədir</string>
   <!-- 'Invite others to message' should be translated using the same localized wording YouTube displays
@@ -121,9 +119,9 @@ Dəyişikliklər ehtiva edir:
 • Shorts cərgələri, kanal səhifələri və axtarış nəticələri yüklənmə vaxtlarını hələ də göstərə bilər
 • Avtomobil tərtibatı ilə işləmir"</string>
   <string name="morphe_hide_video_thumbnail_title">Video miniatürün gizlət</string>
-  <!-- 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
-  <string name="morphe_hide_video_recommendation_labels_title">Video tövsiyə etiketlərini gizlət</string>
-  <string name="morphe_hide_video_recommendation_labels_summary">Axtarış nəticələrində \"İnsanlar həmçinin izləyiblər\" və \"Bunu da bəyənə bilərsiniz\" etiketlərini gizlədir</string>
+  <!-- 'Auto-dubbed', 'Earns commission', 'Hyped', 'People also watched' and 'You might also like' should be translated using the same localized wording YouTube displays for the label. -->
+  <string name="morphe_hide_video_labels_title">Video etiketlərini gizlət</string>
+  <string name="morphe_hide_video_labels_summary">\'Avtomatik dublyaj edilmiş\' / \'Dublyaj edilmiş\', \'Komissiya qazanır\', \'Hayp edilib\', \'İnsanlar həmçinin izləyiblər\', \'məhsul(lar)\' və \'Bunu da bəyənə bilərsiniz\' kimi etiketləri gizlədir</string>
   <string name="morphe_hide_view_count_title">Baxış sayını gizlət</string>
   <!-- Translations should match the language used in 'morphe_hide_upload_time_summary'. -->
   <string name="morphe_hide_view_count_summary">"Məhdudiyyətlər:
@@ -170,7 +168,9 @@ Dəyişikliklər ehtiva edir:
   <string name="morphe_hide_video_title_title">Video başlığını gizlət</string>
   <string name="morphe_hide_video_title_summary">Tam ekran rejimindəki video başlığı gizlədilir</string>
   <string name="morphe_sanitize_video_subtitle_title">Video titrin təmizlə</string>
-  <string name="morphe_sanitize_video_subtitle_summary">Video titrdən \"#\", \"İanə toplayan\", \"Mağaza\" və \"məhsullar\" kimi ifadələri təmizləyir</string>
+  <string name="morphe_sanitize_video_subtitle_summary">Video titrdən \"#\", \"İanə toplayan\", \"məhsul(lar)\" və \"Mağaza\" kimi ifadələri təmizləyir</string>
+  <string name="morphe_hide_ask_gemini_button_title">\'Gemini-dən soruş\' düyməsini gizlət</string>
+  <string name="morphe_hide_ask_gemini_button_summary">\"Bu video haqqında soruş\" panelinin altındakı \"Gemini-dən Soruş\" düyməsini gizlədir</string>
   <string name="morphe_hide_description_components_screen_title">Video təsviri</string>
   <string name="morphe_hide_description_components_screen_summary">Video təsvirində hansı elementlər görünür seç</string>
   <string name="morphe_hide_ai_generated_video_summary_section_title">\"AI tərəfindən yaradılan video xülasəsi\" bölməsini gizlət</string>
@@ -329,7 +329,6 @@ Məhdudiyyətlər:
   <string name="morphe_hide_stats_hidden_all_title">Bütün zamanlar üzrə gizlədilən videolar</string>
   <string name="morphe_hide_stats_hidden_24h_reset_title">Son 24 saatlıq sayğac sıfırlansın?</string>
   <string name="morphe_hide_stats_hidden_all_reset_title">Bütün vaxt sayğacı sıfırlansın?</string>
-  <string name="morphe_hide_about_category_title">Haqqında</string>
   <string name="morphe_hide_aislist_screen_title">Süni intellekt kanalı filtri</string>
   <string name="morphe_hide_aislist_screen_summary">AiSList icma siyahısı tərəfindən süni intellekt ilə yaradılan məzmun kimi nişanlanmış kanallardan videoları gizlət</string>
   <string name="morphe_hide_aislist_blocklist_category_title">Bloklama siyahısı: Yüksək etibarlılıq</string>
@@ -348,9 +347,9 @@ Məhdudiyyətlər:
 Məhdudiyyətlər:
 • Filtrlənmiş süni intellekt Shorts-ları boş yer kimi görünə bilər
 • Bəzi süni intellekt videoları hələ də görünə bilər"</string>
-  <string name="morphe_hide_aislist_attribution_summary">"Məlumatlar AiSList tərəfindən təmin edilir
+  <string name="morphe_hide_aislist_attribution_summary">"AiSList — könüllülər tərəfindən idarə olunan, süni intellektlə yaradılmış məzmun hazırlayan YouTube kanallarının açıq mənbəli siyahısıdır. Kanallar istifadəçilər tərəfindən bildirilir və əlavə edilməzdən əvvəl nəzərdən keçirilir
 
-AiSlopList.com 'u açmaq və digər platformalar üçün yükləmələri görmək üçün buraya toxun"</string>
+​Siyahı GitHub-dan yüklənir və videolar cihazınızda filtrdən keçirilir"</string>
   <string name="morphe_aislist_submit_category_title">Süni intellekt kanallarını bildir</string>
   <string name="morphe_aislist_submit_flyout_menu_title">Video menyusuna bildir bəndini əlavə et</string>
   <string name="morphe_aislist_submit_flyout_menu_summary">Video kanalını AiSList-ə bildirmək üçün video menyusuna bənd əlavə et</string>
@@ -404,7 +403,7 @@ AiSlopList.com 'u açmaq və digər platformalar üçün yükləmələri görmə
   <!-- interaction.channelsearch.channelSearchPatch -->
   <string name="morphe_channel_search_title">Kanal daxilində axtar</string>
   <string name="morphe_channel_search_summary">Yalnız həmin kanalı axtarmaq üçün kanal səhifələrində ikinci axtarış düyməsini əlavə edir</string>
-  <string name="morphe_channel_search_hint">Kanal axtar</string>
+  <string name="morphe_channel_search_hint">Kanalı axtar</string>
   <string name="morphe_channel_search_results">Kanal axtarış nəticələri</string>
   <string name="morphe_channel_search_no_results">Bu kanalda heç nə tapılmadı</string>
   <string name="morphe_channel_search_failed">Bu kanalda axtarış etmək olmadı</string>
@@ -791,6 +790,8 @@ Bunu düzəltmək üçün 'Video yayımlarını saxtalaşdır'-ı aktivləşdir 
 Tənzimləmələrə daxil olmaq üçün Ümumi → Alət Cərgəsi→ Tənzimləmələri Göstər vasitəsilə Ayarlar düyməsini aktivləşdir."</string>
   <string name="morphe_narrow_navigation_buttons_title">Sıx fəaliyyət düymələrini aktivləşdir</string>
   <string name="morphe_narrow_navigation_buttons_summary">Düymələr arasında üfüqi boşluğu azaldır</string>
+  <string name="morphe_disable_icon_only_navigation_buttons_title">Etiketsiz fəaliyyət düymələrini qapat</string>
+  <string name="morphe_disable_icon_only_navigation_buttons_summary">YouTube etiketsiz göndərirsə, fəaliyyət düymələrini etiketlərlə göstərir</string>
   <string name="morphe_navigation_bar_animations_title">Fəaliyyət cərgəsi animasiyalarını aktivləşdir</string>
   <string name="morphe_navigation_bar_animations_summary">Tabellər arasında keçərkən keçidləri canlandırır</string>
   <string name="morphe_disable_auto_hide_navigation_bar_title">Fəaliyyət cərgəsin avtomatik gizlətməsini qapat</string>
@@ -1123,6 +1124,9 @@ Məhdudiyyət: 'Köhnə video fəaliyyət cizgisini bərpa et' qapadılıbsa, 'D
   <!-- misc.fix.fixBackToExitGesturePatch -->
   <string name="morphe_back_button_always_exits_feed_title">Geri düyməsi axından çıxarır</string>
   <string name="morphe_back_button_always_exits_feed_summary">Geriyə basmaq, axının yuxarısına sürüşdürmək əvəzinə, həmişə tətbiqdən çıxır</string>
+  <!-- layout.font.forceSystemFontPatch -->
+  <string name="morphe_force_system_font_title">Sistem şriftinə zorla</string>
+  <string name="morphe_force_system_font_summary">Tətbiqi YouTube Sans əvəzinə cihaz şrifti ilə göstərir</string>
   <!-- layout.statusbar.hideStatusBarPatch -->
   <string name="morphe_hide_status_bar_title">Status panelini gizlət</string>
   <string name="morphe_hide_status_bar_summary">Sistem status panelini gizlədir. Onu bir anlıq göstərmək üçün yuxarı kənardan aşağı sürüşdür</string>
@@ -1171,16 +1175,18 @@ Məhdudiyyət: 'Köhnə video fəaliyyət cizgisini bərpa et' qapadılıbsa, 'D
   <string name="morphe_dearrow_titles_search_title">Axtarış nəticələri</string>
   <string name="morphe_dearrow_titles_icon_title">DeArrow işarəsini göstər</string>
   <string name="morphe_dearrow_titles_icon_summary">Kütləvi mənbəli video başlıqlarında DeArrow işarəsini göstərir</string>
+  <string name="morphe_dearrow_casual_mode_title">Təsadüfi rejim</string>
+  <string name="morphe_dearrow_casual_mode_summary">DeArrow istifadəçiləri orijinal başlığı bəyəndikləri təqdirdə DeArrow başlığı əvəzinə orijinal başlığı göstərir</string>
+  <string name="morphe_dearrow_casual_mode_min_votes_title">Orijinal başlığı göstərmək üçün ən az adi səslər</string>
+  <string name="morphe_dearrow_casual_mode_min_votes_summary">Orijinal başlığı göstərmək üçün \'gülməli\' və ya \'yaradıcı\' kimi tək kateqoriyada adi səs sayı</string>
   <string name="morphe_dearrow_thumbnails_title">DeArrow miniatürləri</string>
   <string name="morphe_dearrow_thumbnail_options_entry_1">Orijinal miniatürlər</string>
   <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Orijinal miniatürlər</string>
   <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Durğun kadr çəkilişləri</string>
   <string name="morphe_dearrow_thumbnail_options_entry_4">Durğun kadr çəkilişləri</string>
-  <string name="morphe_dearrow_about_summary">"DeArrow, YouTube videoları üçün kütləvi mənbəli başlıqlar və miniatürlər təmin edir. Bunlar çox vaxt YouTube tərəfindən təmin edilənlərdən daha uyğundur
+  <string name="morphe_dearrow_about_summary">"DeArrow diqqətçəkən başlıqları və miniatürləri daha dəqiq və daha az sensasiyalı olan kütləvi variantlarla əvəzləyir. Başlıqlar icma tərəfindən yazılır və səsverməyə qoyulur, miniatürlər isə videodan götürülmüş kadrlar olur
 
-Aktivləşdirildikdə, video URL-ləri API serverinə göndəriləcək və başqa heç bir məlumat göndərilməyəcək. Əgər videonun DeArrow miniatürləri yoxdursa, orijinal və ya durğun kadr çəkilişləri görünür
-
-DeArrow.ajay.app 'i açmaq üçün buraya toxun"</string>
+​Videolar parçalanmış video ID-sinin qısa prefiksi vasitəsilə sorğulanır, beləliklə server tam olaraq hansı videoya baxdığınızı bilə bilmir. Əgər videonun DeArrow miniatürü yoxdursa, orijinal və ya kadr çəkilişi göstərilir"</string>
   <string name="morphe_dearrow_connection_toast_title">Bağlantı xətası xəbərdarlıqlarını göstər</string>
   <string name="morphe_dearrow_connection_toast_summary">DeArrow serveri əlçatmaz olduqda bildiriş göstərir</string>
   <string name="morphe_dearrow_api_url_title">API son nöqtəsi</string>

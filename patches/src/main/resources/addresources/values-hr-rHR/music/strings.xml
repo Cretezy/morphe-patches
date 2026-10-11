@@ -176,6 +176,9 @@ Ovdje se prikazuju preuzete pjesme"</string>
   <string name="morphe_settings_music_screen_4_player_title">Player</string>
   <string name="morphe_settings_music_screen_5_lyrics_title">Tekst pjesme</string>
   <string name="morphe_settings_music_screen_9_misc_title">Razno</string>
+  <string name="morphe_music_app_language_title">Jezik aplikacije YouTube Music</string>
+  <string name="morphe_music_app_language_summary_default">Jezik sustava</string>
+  <string name="morphe_music_app_language_summary_unsupported">Zahtijeva Android 13 ili noviji</string>
   <!-- ad.hideAdsPatch -->
   <string name="morphe_music_hide_get_premium_label_title">Sakrij oznaku \'Nabavi Music Premium\'</string>
   <string name="morphe_music_hide_music_premium_promotions_title">Sakrij promocije usluge Music Premium</string>
@@ -241,32 +244,26 @@ Ovdje se prikazuju preuzete pjesme"</string>
   <string name="morphe_music_crossfade_paused_toast">Crossfade je pauziran za ovu sesiju</string>
   <string name="morphe_music_crossfade_resumed_toast">Crossfade nastavljen</string>
   <string name="morphe_music_crossfade_video_mode_disabled_toast">Video mod nije dostupan dok je omogućeno preklapanje</string>
-  <string name="morphe_music_crossfade_cast_unstable_toast">Crossfade je pauziran tijekom emitiranja ili zrcaljenja zvuka. Crossfade putem emitiranja/zrcaljenja je nestabilan i možda se nikad neće popraviti</string>
-  <string name="morphe_music_crossfade_about_title">O aplikaciji</string>
-  <string name="morphe_music_crossfade_about_summary">Kako crossfade radi — a kada ne radi</string>
-  <!-- Banner row has no text; it shows a full-width graphic via a custom layout. -->
+  <string name="morphe_music_crossfade_sabr_toast">Crossfade je isključen kod SABR reprodukcije</string>
+  <string name="morphe_music_crossfade_cast_unstable_toast">Crossfade je isključen tijekom emitiranja</string>
   <string name="morphe_music_crossfade_about_how_title">Kako radi</string>
-  <string name="morphe_music_crossfade_about_how_summary">"Crossfade preklapa kraj jedne pjesme s početkom sljedeće, pri čemu se jedna stišava dok se druga pojačava prema odabranom trajanju i krivulji.
+  <string name="morphe_music_crossfade_about_how_summary">"Crossfade preklapa kraj jedne pjesme s početkom sljedeće, koristeći vaše trajanje i krivulju.
 
-Radi pri automatskom prijelazu (kada pjesma završi sama) i kod ručnog preskakanja — svako ima svoju skretnicu iznad. Kod automatskog prijelaza miješanje počinje nekoliko sekundi prije nego pjesma završi.
+Radi kod automatskog prelaska i ručnog preskakanja, a svaki ima vlastiti prekidač. Kod automatskog prelaska, spajanje počinje nekoliko sekundi prije kraja pjesme"</string>
+  <string name="morphe_music_crossfade_about_quirks_title">Ograničenja</string>
+  <string name="morphe_music_crossfade_about_quirks_summary">"Glazbeni videozapisi reproduciraju se samo kao zvuk dok je crossfade uključen. Dugim pritiskom na gumb za nasumičnu reprodukciju pauzirajte crossfade i pogledajte videozapis
 
-Zahtijeva YouTube Music 9.x ili noviju inačicu."</string>
-  <string name="morphe_music_crossfade_about_best_title">Najbolje radi s</string>
-  <string name="morphe_music_crossfade_about_best_summary">Normalno reproduciranje pjesme i automatski prijelaz, ponavljanje jedne (pjesma se preslikava na samu sebe) i lokalni zvuk — zvučnik telefona, žičane slušalice, Bluetooth ili USB.</string>
-  <string name="morphe_music_crossfade_about_quirks_title">Ne radi baš kako treba</string>
-  <string name="morphe_music_crossfade_about_quirks_summary">"Glazbeni videozapisi reproduciraju se samo kao zvuk dok je crossfade uključen (dugo pritisnite nasumično reproduciranje za pauziranje ako želite videozapis)
+Glazbeni videozapis koji započne reprodukciju ostaje u video načinu do sljedeće pjesme
 
-Pjesme kraće od trajanja fadea mogu preskočiti fade
+Pjesme kraće od trajanja stapanja ne koriste crossfade
 
-Zaključani zaslon ili obavijest mogu nakratko prikazati zastarjelo stanje usred prijelaza"</string>
-  <string name="morphe_music_crossfade_about_known_title">Poznati problemi</string>
-  <string name="morphe_music_crossfade_about_known_summary">"Glazbeni videozapis postavljen kao prva pjesma — ili onaj pokrenut izvan trenutnog reda čekanja — može se nakratko prikazati kao videozapis prije nego što se uključi način samo sa zvukom
+Zaključani zaslon ili obavijest mogu nakratko prikazati zastarjelo stanje usred prijelaza
 
-Ako pauzirate crossfade za gledanje glazbenog videozapisa, neki videozapisi mogu ostati crni (oni čiji zvuk dolazi iz samog videozapisa). Pauziranje crossfadea prije odabira pjesme to izbjegava"</string>
-  <string name="morphe_music_crossfade_about_unsupported_title">Uopće ne radi</string>
-  <string name="morphe_music_crossfade_about_unsupported_summary">"Emitiranje ili zrcaljenje zvuka (Chromecast, zrcaljenje zaslona ili zvuka) — crossfade se pauzira jer je tamo nestabilan i možda se nikad neće popraviti.
+Pauziranje crossfadea radi gledanja glazbenog videozapisa može ostaviti neke videozapise crnima. Pauziranje crossfadea prije odabira pjesme to izbjegava"</string>
+  <string name="morphe_music_crossfade_about_unsupported_title">Nije podržano</string>
+  <string name="morphe_music_crossfade_about_unsupported_summary">"Emitiranje ili zrcaljenje zvuka (Chromecast, zrcaljenje zaslona ili zvuka)
 
-YouTube Music 8.x — crossfade radi samo na 9.x i novijim inačicama"</string>
+SABR reprodukcija (imitiranje video streamova je isključeno)"</string>
   <string name="morphe_music_crossfade_about_credit_title">Zasluge</string>
   <string name="morphe_music_crossfade_about_credit_summary">Crossfade značajka od VazerOG</string>
   <!-- interaction.remember.repeatstate.rememberRepeatStatePatch-->
@@ -452,8 +449,6 @@ YouTube Music 8.x — crossfade radi samo na 9.x i novijim inačicama"</string>
   <string name="morphe_music_scrobbling_guess_album_title">Ispuni nedostajući album</string>
   <string name="morphe_music_scrobbling_guess_album_summary">Kada glazba ne sadrži album, potraži ga na Last.fm kako bi tvoj scrobble bio potpun.</string>
   <!-- 'scrobbling' must be kept untranslated -->
-  <string name="morphe_music_scrobbling_about_title">O scrobblingu</string>
-  <!-- 'scrobbling' must be kept untranslated -->
   <string name="morphe_music_scrobbling_about_summary">"Scrobbling automatski sinkronizira vaše korištenje usluge YouTube Music s vašim profilom na Last.fm ili ListenBrainzu
 
 Kako biste osigurali sinkronizaciju scrobblinga tijekom reprodukcije u pozadini, provjerite da je upotreba baterije aplikacije YouTube Music postavljena na \"Neograničeno\""</string>
@@ -465,7 +460,6 @@ Kako biste osigurali sinkronizaciju scrobblinga tijekom reprodukcije u pozadini,
   <string name="morphe_music_lyrics_section_service_title">Usluga stihova</string>
   <string name="morphe_music_lyrics_section_overlay_title">Pregač</string>
   <string name="morphe_music_lyrics_section_sync_title">Sinkronizacija</string>
-  <string name="morphe_music_lyrics_section_about_title">O aplikaciji</string>
   <string name="morphe_music_lyrics_source_all_disabled">Svi pružatelji usluga onemogućeni — ugrađeni tekstovi pjesama i tekstovi ugrađeni u datoteku</string>
   <string name="morphe_music_lyrics_source_reset_title">Ponovno postaviti redoslijed pružatelja?</string>
   <string name="morphe_music_lyrics_source_reset_message">Vrati pružatelje na zadani redoslijed prioriteta</string>
