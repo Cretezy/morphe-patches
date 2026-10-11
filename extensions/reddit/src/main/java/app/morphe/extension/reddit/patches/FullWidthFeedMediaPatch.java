@@ -40,6 +40,40 @@ public final class FullWidthFeedMediaPatch {
     }
 
     /**
+     * Injection point.
+     * <p>
+     * Side padding of inset media, in dp.
+     */
+    public static float getMediaSidePadding(float original) {
+        return Settings.FULL_WIDTH_FEED_MEDIA.get() ? 0 : original;
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Clips media with rounded corners and an outline.
+     */
+    public static Object applyMediaShape(Object modifier) {
+        return Settings.FULL_WIDTH_FEED_MEDIA.get() ? modifier : applyOriginalMediaShape(modifier);
+    }
+
+    /**
+     * @return The modifier, clipped with rounded corners and an outline.
+     */
+    public static Object applyOriginalMediaShape(Object modifier) {
+        return modifier;  // Modified during patching.
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * Media modifier, without the rounded corners and outline of the shaped one.
+     */
+    public static Object getMediaModifier(Object modifier, Object shapedModifier) {
+        return Settings.FULL_WIDTH_FEED_MEDIA.get() ? modifier : shapedModifier;
+    }
+
+    /**
      * @return The content of post details content props.
      */
     public static Object getPostContent(Object props) {
