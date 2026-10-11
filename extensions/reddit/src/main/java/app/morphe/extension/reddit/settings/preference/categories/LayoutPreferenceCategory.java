@@ -34,6 +34,7 @@ import app.morphe.extension.reddit.settings.preference.CustomFontFilePreference;
 import app.morphe.extension.reddit.settings.preference.CustomFontTogglePreference;
 import app.morphe.extension.reddit.settings.preference.ForceSystemFontPreference;
 import app.morphe.extension.reddit.settings.preference.NumberSettingPreference;
+import app.morphe.extension.shared.Utils;
 
 @SuppressWarnings("deprecation")
 public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
@@ -187,5 +188,7 @@ public class LayoutPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.SWAP_POST_VOTE_COMMENT_BUTTONS
             ));
         }
+
+        Utils.setPreferenceTitlesToMultiLine(this);
     }
 }
