@@ -22,6 +22,7 @@ import app.morphe.patches.reddit.misc.version.is_2026_38_0_or_greater
 import app.morphe.patches.reddit.misc.version.versionCheckPatch
 import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.registersUsed
 import app.morphe.util.setExtensionIsPatchIncluded
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -249,16 +250,32 @@ val fullWidthFeedMediaPatch = bytecodePatch(
             // Embedded videos in the post details.
             PostDetailEmbedVideoFingerprint.let { embed ->
                 embed.method.apply {
-                    val shapeIndex = embed.instructionMatches.last().index
-                    val paddedRegister = getInstruction<FiveRegisterInstruction>(shapeIndex).registerC
-                    val shapedRegister = getInstruction<OneRegisterInstruction>(shapeIndex + 1).registerA
-                    val modifierType = (getInstruction<ReferenceInstruction>(shapeIndex).reference as MethodReference).returnType
-                    addInstructions(
-                        shapeIndex + 2,
+                    // The result usually replaces the unclipped modifier in the same register,
+                    // so the call itself is replaced.
+                    val shapeMatch = embed.instructionMatches.last()
+                    val shapeIndex = shapeMatch.index
+                    val shapeMethod = shapeMatch.getInstruction<ReferenceInstruction>().reference as MethodReference
+                    val shapeRegisters = shapeMatch.instruction.registersUsed
+                    val resultRegister = getInstruction<OneRegisterInstruction>(shapeIndex + 1).registerA
+                    addInstruction(shapeIndex + 2, "check-cast v$resultRegister, ${shapeMethod.returnType}")
+                    replaceInstruction(
+                        shapeIndex,
+                        "invoke-static { ${shapeRegisters.joinToString { "v$it" }} }, " +
+                                "$EXTENSION_CLASS->applyEmbedMediaShape(" +
+                                "Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;"
+                    )
+                    Fingerprint(
+                        definingClass = EXTENSION_CLASS,
+                        name = "applyOriginalEmbedMediaShape"
+                    ).method.addInstructions(
+                        0,
                         """
-                            invoke-static { v$paddedRegister, v$shapedRegister }, $EXTENSION_CLASS->getMediaModifier(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-                            move-result-object v$shapedRegister
-                            check-cast v$shapedRegister, $modifierType
+                            check-cast p0, ${shapeMethod.parameterTypes[0]}
+                            check-cast p1, ${shapeMethod.parameterTypes[1]}
+                            check-cast p2, ${shapeMethod.parameterTypes[2]}
+                            invoke-static { p0, p1, p2 }, $shapeMethod
+                            move-result-object p0
+                            return-object p0
                         """
                     )
 

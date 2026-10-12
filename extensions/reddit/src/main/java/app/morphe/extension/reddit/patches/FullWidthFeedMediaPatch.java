@@ -67,10 +67,19 @@ public final class FullWidthFeedMediaPatch {
     /**
      * Injection point.
      * <p>
-     * Media modifier, without the rounded corners and outline of the shaped one.
+     * Clips embedded media with rounded corners and an outline.
      */
-    public static Object getMediaModifier(Object modifier, Object shapedModifier) {
-        return Settings.FULL_WIDTH_FEED_MEDIA.get() ? modifier : shapedModifier;
+    public static Object applyEmbedMediaShape(Object modifier, Object inspectorInfo, Object factory) {
+        return Settings.FULL_WIDTH_FEED_MEDIA.get()
+                ? modifier
+                : applyOriginalEmbedMediaShape(modifier, inspectorInfo, factory);
+    }
+
+    /**
+     * @return The modifier, clipped with rounded corners and an outline.
+     */
+    public static Object applyOriginalEmbedMediaShape(Object modifier, Object inspectorInfo, Object factory) {
+        return modifier;  // Modified during patching.
     }
 
     /**
