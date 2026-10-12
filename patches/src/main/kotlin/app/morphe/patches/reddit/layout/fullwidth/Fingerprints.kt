@@ -300,6 +300,8 @@ internal fun youTubeVideoSectionContentFingerprint(definingClass: String) = Fing
  * Horizontal padding of the post details content, in dp.
  */
 internal fun postDetailHorizontalPaddingFilter() = methodCall(
+    // '-D9Ej5fM' suffix is not obfuscation.
+    // Kotlin adds it to functions returning Dp (an inline value class).
     smali = "Lcom/reddit/postdetail/PostDetailStyle\$HorizontalPadding;->getSize-D9Ej5fM()F"
 )
 
